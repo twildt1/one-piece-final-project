@@ -1,63 +1,124 @@
 {% extends "layout.html" %}
-{% block title %}Wanted: {{ character.name }}{% endblock %}
+
+{% block title %}{{ character.name }} - Database{% endblock %}
+
 {% block main %}
+<div class="container mt-5">
 
-<div class="wanted-body">
-    <div class="wanted-poster">
+    <div class="mb-4">
+        <a href="/search" class="btn btn-outline-danger btn-sm">&larr; Back to Search</a>
+    </div>
 
-        <!-- big WANTED header -->
-        <div class="wanted__title">
-            <h1>WANTED</h1>
-        </div>
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card bg-dark bg-opacity-75 text-white shadow border-secondary">
 
-        <!-- main identity section with image, subtitle, and name -->
-        <div class="wanted__identity-info">
-            <!-- character photo or placeholder if no image -->
-            <div class="wanted__img">
-                {% if character.image %}
-                    <img src="{{ character.image }}" alt="{{ character.name }}">
-                {% else %}
-                    <!-- anchor icon as fallback if there's no character image -->
-                    <div style="font-size: 10rem; opacity: 0.1; padding-top: 40px;">⚓</div>
-                {% endif %}
-            </div>
-
-            <!-- dead or alive text -->
-            <div class="wanted__subtitle">
-                <p>DEAD OR ALIVE</p>
-            </div>
-
-            <!-- character name -->
-            <div class="wanted__name">
-                <h2>{{ character.name }}</h2>
-            </div>
-        </div>
-
-        <!-- bounty information section -->
-        <div class="wanted__bounty-info">
-            <!-- the actual bounty amount (replace periods with commas) -->
-            <div class="wanted__bounty-amount">
-                <p>฿ {{ character.bounty.replace('.', ',') if character.bounty else 'Unknown' }}-</p>
-            </div>
-
-            <!-- footer with legal disclaimer and marine branding -->
-            <div class="wanted__footer">
-                <!-- fine print about taxes and reporting -->
-                <div class="wanted__desc">
-                    <p>MARINE HEADQUARTERS. DOES NOT INCLUDE TAXES OR BERRIES ACCRUED DURING PIRACY. IF SEEN, CONTACT YOUR LOCAL MARINE CAPTAIN IMMEDIATELY.</p>
+                <div class="card-header border-secondary d-flex justify-content-between align-items-center">
+                    <h3 class="pirate-font text-warning mb-0">Pirate Database: {{ character.name }}</h3>
+                    <span class="badge bg-secondary">File #{{ character.id }}</span>
                 </div>
-                <!-- marine logo/text -->
-                <div class="marine">
-                    <h3>MARINE</h3>
+
+                <div class="card-body">
+
+                    <h4 class="text-warning border-bottom border-secondary pb-2 mb-3">Vital Statistics</h4>
+
+                    <div class="mt-4 border-top border-secondary pt-3">
+                        <form action="/add_character_crew" method="post">
+                            <input type="hidden" name="name" value="{{ character.name }}">
+                            <input type="hidden" name="id" value="{{ character.id }}">
+                            <input type="hidden" name="bounty" value="{{ character.bounty }}">
+
+                            <button type="submit" class="btn btn-warning w-100 fw-bold">
+                                <i class="bi bi-plus-circle-fill"></i> Recruit to Crew
+                            </button>
+                        </form>
+                        <div class="text-center mt-2">
+                            <small class="text-white-50">
+                                *Limit 15 characters per crew.
+                            </small>
+                        </div>
+                    </div>
+
+                    <table class="table table-dark table-borderless table-hover">
+                        <tbody>
+                            <tr>
+                                <th scope="row" class="text-white-50 w-25">Age</th>
+                                <td class="fs-5">{{ character.age }}</td>
+                            </tr>
+                            <tr>
+                                <th scope="row" class="text-white-50">Bounty</th>
+                                <td class="fs-5" style="font-family: 'Pirata One', cursive; letter-spacing: 1px;">
+                                    ฿ {{ character.bounty }}
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row" class="text-white-50">Devil Fruit</th>
+                                <td class="fs-5 text-info">{{ character.fruit_name }}</td>
+                            </tr>
+                            <tr>
+                                <th scope="row" class="text-white-50">Fruit Type</th>
+                                <td>
+                                    {% if character.fruit_type != "No Devil Fruit" %}
+                                        <span class="badge bg-purple">{{ character.fruit_type }}</span>
+                                    {% else %}
+                                        <span class="text-white-50">-</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row" class="text-white-50">Status</th>
+                                <td>
+                                    {% if "Unknown" in character.bounty %}
+                                        <span class="badge bg-secondary">Civilian / Unknown</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Active Pirate</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="mt-4">
+                        <h4 class="text-warning border-bottom border-secondary pb-2 mb-3">Grand Line Intel</h4>
+                        <div class="p-4 rounded border border-warning border-2" style="background-color: #212529; color: white;">
+                            <div class="d-flex align-items-start">
+                                <i class="bi bi-info-circle-fill text-warning me-3 fs-3"></i>
+                                <div>
+                                    <strong class="text-warning text-uppercase">Did you know?</strong><br>
+                                    <span class="fs-6" style="color: #e0e0e0; line-height: 1.6;">
+                                        While the logs don't reveal everything, {{ character.name }} is known throughout the seas for their {{ character.fruit_name if character.fruit_name != 'No Devil Fruit' else 'strength and will' }}.
+                                        {% if "Luffy" in character.name %}
+                                            They are the captain of the Straw Hat Pirates!
+                                        {% elif "Zoro" in character.name %}
+                                            They aim to be the world's greatest swordsman.
+                                        {% endif %}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-5 text-end">
+                        <a href="https://onepiece.fandom.com/wiki/{{ character.name }}" target="_blank" class="btn btn-outline-light">
+                            <i class="bi bi-book"></i> Read Full Wiki
+                        </a>
+                    </div>
+
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- back button below the poster -->
-<div class="text-center back-btn">
-    <a href="/search" class="btn btn-outline-light mb-5">Return to Search</a>
-</div>
+<style>
+    /* Custom purple for fruit type badges */
+    .bg-purple { background-color: #6f42c1; color: white; }
 
+    /* Ensure the Pirate Font loads */
+    @import url('https://fonts.googleapis.com/css2?family=Pirata+One&display=swap');
+
+    .pirate-font {
+        font-family: 'Pirata One', cursive;
+    }
+</style>
 {% endblock %}

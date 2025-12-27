@@ -1,0 +1,40 @@
+{% extends "layout.html" %}
+
+{% block title %}Establish Crew{% endblock %}
+
+{% block main %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card bg-dark text-white border-warning shadow-lg">
+                <div class="card-header text-center border-warning">
+                    <h2 class="pirate-font text-warning mb-0">Establish a Pirate Crew</h2>
+                </div>
+                <div class="card-body p-4">
+                    <p class="text-center text-white-50 mb-4">
+                        Gather your nakama and set sail for the Grand Line!
+                    </p>
+
+                    <form action="/create_crew" method="post">
+
+                        <div class="mb-3">
+                            <label for="crew_name" class="form-label text-warning">Crew Name</label>
+                            <input autocomplete="off" autofocus class="form-control bg-secondary text-white border-0" id="crew_name" name="crew_name" placeholder="e.g. Straw Hat Pirates" type="text" required>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="motto" class="form-label text-warning">Motto / Description</label>
+                            <textarea class="form-control bg-secondary text-white border-0" id="motto" name="motto" rows="3" placeholder="To find the One Piece!"></textarea>
+                        </div>
+
+                        <button class="btn btn-warning w-100 fw-bold fs-5" type="submit">
+                            <i class="bi bi-flag-fill me-2"></i> Raise the Flag
+                        </button>
+                    </form>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

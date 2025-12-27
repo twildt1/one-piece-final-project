@@ -9,15 +9,13 @@
             <!--I create the heading telling the user what this page is-->
             <h2 style="font-family: 'Pirata One';">Update Captain's Log</h2>
             <!--I create a form action that allows for a post and tells it to send the data to /edit_profile in my python script-->
-            <form action="/edit_profile/" method="post" class="text-start mt-4">
+            <form action="/my_profile_edit" method="post" class="text-start mt-4">
                 <!--Now I create the contents of the selections a user can do within the form element-->
                 <div class="mb-3">
                     <!--I allow them different edit features related to their crew/profile-->
                     <label class="form-label fw-bold" style>Ship Roles</label>
                     <!--Here is where we define the options within the page-->
                     <select name="role" class="form-select">
-                        <!--We are going to use Jinja syntax to create an if statement for each defined option we have
-                        It is going to pull the role that you have within the crew through the db-->
                         <option value="Captain" {% if user.role == 'Captain' %}selected{% endif %}>Captain</option>
                         <option value="Swordsman" {% if user.role == 'Swordsman' %}selected{% endif %}>Swordsman</option>
                         <option value="Navigator" {% if user.role == 'Navigator' %}selected{% endif %}>Navigator</option>

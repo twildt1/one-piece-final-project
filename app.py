@@ -5,8 +5,7 @@ from cs50 import SQL
 from flask import Flask, flash, redirect, render_template, request, session
 from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
-from helpers import apology, login_required, search_character
-
+from helpers import apology, login_required, search_character, get_total_episodes, get_episode_title
 app = Flask(__name__)
 
 app.config["SESSION_PERMANENT"] = False
@@ -128,53 +127,42 @@ def register():
 @login_required
 def search():
     if request.method == "POST":
-        #if the method is post then we will need to grab the dayta from my HTML's name attributes we created in the search.html
-        #query refers to the Search for a pirate, captain, or crew! I created in my HTML
         query = request.form.get("query")
-        #we defined 3 search types within search types:
-            #character
-            #user
-            #crew
         search_type = request.form.get("search_type")
 
-        #need to perform validation tom be sure they provide something for the search
         if not query:
             return apology("Must provide a search term", 400)
 
-        #next I am going to create the API Search
-            #search_type is in our search.html
+        # --- CHARACTER SEARCH LOGIC ---
         if search_type == "character":
-            #we set result equal to the helper function for searching characters and pass in our users query
+            # 1. Get basic stats
             result = search_character(query)
-            #if the query could not fund anything
+
             if not result:
                 return apology(f"No pirate named '{query}' in our logs!", 404)
-            #if no issues we will return the user to our search_user.html page which shows character/characters
-                #we set the character equal to the result which is the users query for a character
+
+            # (Deleted the avatar fetching logic here)
+
+            # 2. Clean the "Age" (Change 'ans' to 'Years')
+            if result.get("age") and "ans" in str(result["age"]):
+                result["age"] = str(result["age"]).replace("ans", "Years")
+
             return render_template("search_result.html", character=result)
 
-        #next we define the user search which will have to utilize our SQL
+        # --- USER SEARCH LOGIC ---
         elif search_type == "user":
-            #we will need to search our SQL users table
-            #i pass in the query of the user
             user_results = db.execute("SELECT id, username FROM users WHERE username LIKE ?", f"%{query}%")
-            #perform user validation should a user not be found within the db
             if not user_results:
                 return apology(f"No Captain named '{query}' found!", 404)
-            #if there is no issue then we will return the user to the user_results.html
-                #we set user to user_results
             return render_template("user_results.html", users=user_results)
 
-        #the final search type is for a crew
+        # --- CREW SEARCH LOGIC ---
         elif search_type == "crew":
-            #we need to search our SQL 'crews' table
             crew_results = db.execute("SELECT * FROM crews WHERE crew_name LIKE ?", f"%{query}%")
-            #need to perform validation should a crew not be found within our db
             if not crew_results:
                 return apology(f"The '{query}' hasn't set sail yet!", 404)
-            #how if it does return a crew result then it means something was found and we will take the user to our crew_results html page
             return render_template("crew_results.html", crews=crew_results)
-    #if it is just a GET request then we will only show the page to the user
+
     return render_template("search.html")
 
 
@@ -182,49 +170,44 @@ def search():
 @app.route("/crew/<int:crew_id>")
 @login_required
 def crew_view(crew_id):
-# 1. Pull the crew info
+    # 1. Get Crew Details
     crew = db.execute("SELECT * FROM crews WHERE id = ?", crew_id)
-
-    # If the crew doesn't exist (manual URL entry error)
     if not crew:
         return apology("That fleet has been lost at sea!", 404)
 
-    # 2. Pull the roster of members
-    # We join the users table with memberships to get actual names
+    # 2. Get Real Users (Unlimited)
+    # Joins 'users' table with 'memberships'
     members = db.execute("""
-        SELECT users.username, users.id
+        SELECT users.username, users.id, memberships.role, users.bounty
         FROM users
         JOIN memberships ON users.id = memberships.user_id
         WHERE memberships.crew_id = ?
     """, crew_id)
 
-    # 3. Render the page
-    print(f"DEBUG - Crew Dictionary: {crew[0]}")
-    return render_template("crew_view.html", crew=crew[0], members=members)
+    # 3. Get Fictional Characters (Limited to 15)
+    characters = db.execute("SELECT * FROM crew_characters WHERE crew_id = ?", crew_id)
 
-#I need to create a function where if a user is within the crew view and
-#they select a fictional character, it will direct them to the characters profile
-@app.route("/character/<int:char_id>")
-@login_required
-def character_profile(char_id):
-    response = requests.get(f"https://api.api-onepiece.com/v1/characters/{char_id}",
-                            timeout=5)
-    if response.status_code != 200:
-        return apology("Character not found!", 404)
+    # 4. Calculate Total Bounty (Users + Characters)
+    total_bounty = 0
 
-    char_data = response.json()
+    # Add User Bounties
+    for m in members:
+        total_bounty += m["bounty"]
 
-    # Clean the Bounty: Change dots to commas and add the ฿ symbol
-    if char_data.get("bounty"):
-        char_data["formatted_bounty"] = "฿ " + char_data["bounty"].replace(".", ",")
-    else:
-        char_data["formatted_bounty"] = "Unknown"
+    # Add Character Bounties (Clean up string "1,500,000" -> int)
+    for c in characters:
+        if c["bounty"]:
+            # Remove symbols, dots, commas so we can do math
+            clean_val = str(c["bounty"]).replace(",", "").replace(".", "").replace("฿", "").strip()
+            if clean_val.isdigit():
+                total_bounty += int(clean_val)
 
-    # Clean the Age: Change "ans" to "Years"
-    if char_data.get("age"):
-        char_data["age"] = char_data["age"].replace("ans", "Years")
-
-    return render_template("search_result.html", character=char_data)
+    return render_template("crew_view.html",
+                           crew=crew[0],
+                           members=members,
+                           characters=characters,
+                           total_bounty=f"{total_bounty:,}")
+                           # The ":," adds commas back to the number (e.g. 1,000,000)
 
 @app.route("/profile/<int:user_id>")
 @login_required
@@ -263,7 +246,7 @@ def profile_view(user_id):
 
     # 4. Get the specific reviews for the Watchlog tab
     watchlog_entries = db.execute("""
-        SELECT episode_number, rating, comment, timestamp
+        SELECT episode_number, rating, comment, timestamp, title
         FROM watchlog WHERE user_id = ?
         ORDER BY episode_number DESC
     """, user_id)
@@ -279,7 +262,7 @@ def profile_view(user_id):
                            watchlog=watchlog_entries)
 
 
-@app.route("/edit_profile/", methods=["GET", "POST"])
+@app.route("/my_profile_edit", methods=["GET", "POST"], strict_slashes =False)
 @login_required
 def edit_profile():
     if request.method == "POST":
@@ -319,122 +302,65 @@ def get_character_data(name):
         print(f"API Error: {e}")
     return None
 
-def get_avatar_from_ql(name):
-    url = "https://onepieceql.up.railway.app/graphql"
-
-    # We search by englishName to find the avatarSrc
-    query = """
-    {
-      character(filter: {englishName: "%s"}) {
-        avatarSrc
-      }
-    }
-    """ % name
-
-    try:
-        response = requests.post(url, json={'query': query}, timeout=5)
-        if response.status_code == 200:
-            data = response.json()
-            # Navigate the JSON layers to get the image link
-            char = data.get('data', {}).get('character')
-            return char.get('avatarSrc') if char else None
-    except Exception as e:
-        print(f"GraphQL Error: {e}")
-    return None
-
-@app.route("/crew/<int:crew_id>/join", methods=["POST"])
-@login_required
-def join_crew(crew_id):
-    user_id = session["user_id"]
-
-    # Check if crew exists
-    crew = db.execute("SELECT * FROM crews WHERE id = ?", crew_id)
-    if not crew:
-        return apology("Crew not found", 404)
-
-    # Check if already a member
-    existing = db.execute(
-        "SELECT * FROM memberships WHERE user_id = ? AND crew_id = ?",
-        user_id, crew_id
-    )
-    if existing:
-        flash("You're already part of this crew!")
-        return redirect(f"/crew/{crew_id}")
-
-    # Add membership
-    db.execute(
-        "INSERT INTO memberships (user_id, crew_id) VALUES (?, ?)",
-        user_id, crew_id
-    )
-    flash(f"Successfully joined {crew[0]['crew_name']}!")
-    return redirect(f"/crew/{crew_id}")
-
-
 
 # Add this route to your app.py (after the edit_profile route)
 
 @app.route("/log_episode", methods=["GET", "POST"])
 @login_required
 def log_episode():
-    """Allow users to log episodes they've watched with ratings and comments"""
-
     if request.method == "POST":
         # Get form data
-        episode_number = request.form.get("episode_number")
+        start_ep = request.form.get("start_episode")
+        end_ep = request.form.get("end_episode")
         rating = request.form.get("rating")
         comment = request.form.get("comment")
 
         # Validation
-        if not episode_number:
-            return apology("Must provide episode number", 400)
+        if not start_ep or not rating:
+            return apology("Must provide episode and rating", 400)
 
-        if not rating:
-            return apology("Must provide a rating", 400)
-
-        # Convert to integers and validate
         try:
-            episode_number = int(episode_number)
+            start_ep = int(start_ep)
+            # If end_ep is empty, user is just logging one episode
+            end_ep = int(end_ep) if end_ep else start_ep
             rating = int(rating)
         except ValueError:
-            return apology("Episode number and rating must be numbers", 400)
+            return apology("Episode numbers must be integers", 400)
 
-        # Validate episode number (must be positive)
-        if episode_number < 1:
-            return apology("Episode number must be at least 1", 400)
+        if start_ep > end_ep:
+            return apology("Start episode cannot be higher than End episode", 400)
 
-        # Validate rating (1-10)
-        if rating < 1 or rating > 10:
-            return apology("Rating must be between 1 and 10", 400)
+        # LOOP: Iterate through the range of episodes
+        # range is exclusive at the end, so we add +1
+        for ep_num in range(start_ep, end_ep + 1):
 
-        # Check if user already logged this episode
-        existing = db.execute(
-            "SELECT * FROM watchlog WHERE user_id = ? AND episode_number = ?",
-            session["user_id"], episode_number
-        )
+            # Fetch Title (Using our new helper)
+            # Note: This might take a second if logging 20 episodes, but it's worth it for the data
+            title = get_episode_title(ep_num)
 
-        if existing:
-            # Update existing entry
-            db.execute(
-                "UPDATE watchlog SET rating = ?, comment = ?, timestamp = CURRENT_TIMESTAMP WHERE user_id = ? AND episode_number = ?",
-                rating, comment, session["user_id"], episode_number
+            # Check if exists
+            existing = db.execute(
+                "SELECT * FROM watchlog WHERE user_id = ? AND episode_number = ?",
+                session["user_id"], ep_num
             )
-            flash(f"Updated your log for Episode {episode_number}!")
-        else:
-            # Insert new entry
-            db.execute(
-                "INSERT INTO watchlog (user_id, episode_number, rating, comment) VALUES (?, ?, ?, ?)",
-                session["user_id"], episode_number, rating, comment
-            )
-            flash(f"Successfully logged Episode {episode_number}!")
 
-        # Redirect back to profile
+            if existing:
+                db.execute("""
+                    UPDATE watchlog
+                    SET rating = ?, comment = ?, title = ?, timestamp = CURRENT_TIMESTAMP
+                    WHERE user_id = ? AND episode_number = ?
+                """, rating, comment, title, session["user_id"], ep_num)
+            else:
+                db.execute("""
+                    INSERT INTO watchlog (user_id, episode_number, rating, comment, title)
+                    VALUES (?, ?, ?, ?, ?)
+                """, session["user_id"], ep_num, rating, comment, title)
+
+        flash(f"Successfully logged episodes {start_ep} to {end_ep}!")
         return redirect(f"/profile/{session['user_id']}")
 
-    # GET request - show the form
-    # Get total episodes for validation
+    # GET REQUEST
     total_eps = get_total_episodes()
-
-    # Get episodes already watched (to show what's left)
     watched = db.execute(
         "SELECT episode_number FROM watchlog WHERE user_id = ? ORDER BY episode_number",
         session["user_id"]
@@ -444,3 +370,221 @@ def log_episode():
     return render_template("log_episode.html",
                          total_episodes=total_eps,
                          watched_episodes=watched_numbers)
+
+#I am going to add a delete feature that allows a user to delete an episode entry
+@app.route("/delete_log", methods=["POST"])
+@login_required
+def delete_log():
+    # Get the episode number from the hidden form input
+    episode_number = request.form.get("episode_number")
+
+    if episode_number:
+        db.execute("DELETE FROM watchlog WHERE user_id = ? AND episode_number = ?",
+                   session["user_id"], episode_number)
+        flash(f"Removed Episode {episode_number} from your log.")
+
+    return redirect(f"/profile/{session['user_id']}")
+
+
+#I am goi going to create the function that allows a user to add characters to their crew
+#I am setting a limit of 15 to the fictional characters a user can add to their crew/
+@app.route("/add_character_crew", methods=["POST"])
+@login_required
+def add_character_crew():
+    # 1. Get Data
+    char_name = request.form.get("name")
+    char_id = request.form.get("id")
+    char_bounty = request.form.get("bounty")
+
+    # Debug print to check if data is arriving
+    print(f"DEBUG: Adding {char_name} (ID: {char_id})")
+
+    # 2. Get User's Crew
+    user_crew = db.execute("SELECT id, crew_name FROM crews WHERE captain_id = ?", session["user_id"])
+
+    if not user_crew:
+        flash("You must be a Captain to recruit!")
+        return redirect("/create_crew")
+
+    crew_id = user_crew[0]["id"]
+    crew_name = user_crew[0]["crew_name"]
+
+    # 3. Check Limit (Max 15)
+    count_data = db.execute("SELECT COUNT(*) as count FROM crew_characters WHERE crew_id = ?", crew_id)
+    if count_data[0]["count"] >= 15:
+        flash(f"Your crew is full! (Max 15 Fictional Characters)", "error")
+        return redirect(f"/crew/{crew_id}")
+
+    # 4. Insert with Error Handling
+    try:
+        # We try to insert. If it fails due to UNIQUE constraint, the 'except' block runs.
+        db.execute("""
+            INSERT INTO crew_characters (crew_id, api_id, name, bounty)
+            VALUES (?, ?, ?, ?)
+        """, crew_id, char_id, char_name, char_bounty)
+
+        flash(f"{char_name} has joined {crew_name}!")
+
+    except ValueError:
+        # This catches the "UNIQUE constraint failed" error safely
+        flash(f"{char_name} is already in your crew!", "error")
+    except Exception as e:
+        # This catches any other DB errors
+        print(f"DATABASE ERROR: {e}")
+        flash("An error occurred while adding the pirate.", "error")
+
+    return redirect(f"/crew/{crew_id}")
+
+@app.route("/my_crew")
+@login_required
+def my_crew():
+    # 1. PRIORITY CHECK: Do I own a crew? (Am I the Captain?)
+    # We query the 'crews' table directly to see if the user is a founder/captain
+    owned_crew = db.execute("SELECT id FROM crews WHERE captain_id = ?", session["user_id"])
+
+    if owned_crew:
+        # If I am a Captain, ALWAYS take me to my own ship first
+        return redirect(f"/crew/{owned_crew[0]['id']}")
+
+    # 2. SECONDARY CHECK: Am I just a member of someone else's crew?
+    # If the first check failed, THEN we look at the general memberships table
+    membership = db.execute("SELECT crew_id FROM memberships WHERE user_id = ?", session["user_id"])
+
+    if membership:
+        # If I don't own a ship, take me to the one I joined
+        return redirect(f"/crew/{membership[0]['crew_id']}")
+
+    # 3. FALLBACK: I have no crew at all -> Create one
+    return redirect("/create_crew")
+
+
+@app.route("/create_crew", methods=["GET", "POST"])
+@login_required
+def create_crew():
+    # 1. Handle Form Submission
+    if request.method == "POST":
+        crew_name = request.form.get("crew_name")
+        motto = request.form.get("motto")
+
+        if not crew_name:
+            return apology("Your ship needs a name!", 400)
+
+        # Check if crew name is taken
+        existing = db.execute("SELECT * FROM crews WHERE crew_name = ?", crew_name)
+        if existing:
+            return apology("That crew name is already taken!", 400)
+
+        # 2. Insert the Crew into the Database
+        # We assume the user creating it is the Captain
+        crew_id = db.execute(
+            "INSERT INTO crews (captain_id, founder_id, crew_name, motto) VALUES (?, ?, ?, ?)",
+            session["user_id"], session["user_id"], crew_name, motto
+        )
+
+        # 3. Automatically make the user the 'Captain' in the memberships table
+        db.execute(
+            "INSERT INTO memberships (user_id, crew_id, role) VALUES (?, ?, 'Captain')",
+            session["user_id"], crew_id
+        )
+
+        flash(f"The {crew_name} has set sail!")
+        return redirect(f"/crew/{crew_id}")
+
+    # 2. Handle GET Request (Show the form)
+    return render_template("create_crew.html")
+
+
+# --- INVITATION ROUTES ---
+
+@app.route("/notifications")
+@login_required
+def notifications():
+    user_id = session["user_id"]
+
+    # 1. Get RECEIVED Requests (People inviting ME)
+    received = db.execute("""
+        SELECT invitations.id, invitations.status, crews.crew_name, users.username as sender_name
+        FROM invitations
+        JOIN crews ON invitations.crew_id = crews.id
+        JOIN users ON invitations.sender_id = users.id
+        WHERE invitations.receiver_id = ?
+        ORDER BY invitations.timestamp DESC
+    """, user_id)
+
+    # 2. Get SENT Requests (Who I invited)
+    sent = db.execute("""
+        SELECT invitations.status, users.username as receiver_name, crews.crew_name
+        FROM invitations
+        JOIN users ON invitations.receiver_id = users.id
+        JOIN crews ON invitations.crew_id = crews.id
+        WHERE invitations.sender_id = ?
+        ORDER BY invitations.timestamp DESC
+    """, user_id)
+
+    return render_template("notifications.html", received=received, sent=sent)
+
+
+@app.route("/invite_user", methods=["POST"])
+@login_required
+def invite_user():
+    receiver_id = request.form.get("receiver_id")
+
+    # 1. Check if I have a crew
+    my_crew = db.execute("SELECT id, crew_name FROM crews WHERE captain_id = ?", session["user_id"])
+    if not my_crew:
+        flash("You must be a Captain to invite people!")
+        return redirect("/create_crew")
+
+    crew_id = my_crew[0]["id"]
+
+    # 2. Check if user is ALREADY in the crew
+    is_member = db.execute("SELECT * FROM memberships WHERE user_id = ? AND crew_id = ?", receiver_id, crew_id)
+    if is_member:
+        flash("That pirate is already in your crew!")
+        return redirect("/search")
+
+    # 3. Check if invite ALREADY exists (Pending)
+    existing_invite = db.execute("""
+        SELECT * FROM invitations
+        WHERE receiver_id = ? AND crew_id = ? AND status = 'pending'
+    """, receiver_id, crew_id)
+
+    if existing_invite:
+        flash("You already sent an invite to this user.")
+        return redirect("/search")
+
+    # 4. Send Invite
+    db.execute("""
+        INSERT INTO invitations (sender_id, receiver_id, crew_id, status)
+        VALUES (?, ?, ?, 'pending')
+    """, session["user_id"], receiver_id, crew_id)
+
+    flash("Invitation sent!")
+    return redirect("/notifications")
+
+
+@app.route("/respond_invite", methods=["POST"])
+@login_required
+def respond_invite():
+    invite_id = request.form.get("invite_id")
+    action = request.form.get("action") # 'accept' or 'reject'
+
+    # Get invite details
+    invite = db.execute("SELECT * FROM invitations WHERE id = ?", invite_id)
+    if not invite:
+        return apology("Invitation not found", 404)
+
+    if action == "accept":
+        # 1. Add to memberships
+        db.execute("INSERT INTO memberships (user_id, crew_id) VALUES (?, ?)",
+                   session["user_id"], invite[0]["crew_id"])
+
+        # 2. Update Invite Status
+        db.execute("UPDATE invitations SET status = 'accepted' WHERE id = ?", invite_id)
+        flash("You have joined the crew!")
+
+    elif action == "reject":
+        db.execute("UPDATE invitations SET status = 'rejected' WHERE id = ?", invite_id)
+        flash("Invitation rejected.")
+
+    return redirect("/notifications")

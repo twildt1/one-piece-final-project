@@ -1,164 +1,173 @@
 {% extends "layout.html" %}
 
-{% block title %}{{ captain.username }}'s Profile{% endblock %}
+{% block title %}{{ captain.username }}'s Log{% endblock %}
 
 {% block main %}
-<div class="container mt-5">
-    <!-- Profile Header Section: Avatar, Username, Bounty, and Progress Bar -->
-    <div class="row align-items-center mb-5 text-start">
-        <!-- Left Column: Avatar and Basic Info -->
-        <div class="col-md-3 text-center">
-            <!-- Circular avatar with icon (styled like a wanted poster bounty photo) -->
-            <div class="bg-secondary rounded-circle mb-3 mx-auto d-flex justify-content-center align-items-center shadow"
-                 style="width: 180px; height: 180px; border: 5px solid #ffca28; background: radial-gradient(#6c757d, #343a40);">
-                <i class="bi bi-person-fill" style="font-size: 6rem; color: #ffca28;"></i>
+<div class="container mt-4">
+
+    <div class="row">
+
+        <div class="col-md-5 mb-4">
+            <div class="card bg-dark text-white border-secondary shadow h-100">
+                <div class="card-body text-center">
+
+
+                    <h2 class="pirate-font text-warning mb-0">{{ captain.username }}</h2>
+                    <span class="badge bg-secondary mb-3">{{ captain.role }}</span>
+
+                    <div class="bg-black rounded p-2 mb-3 border border-dark">
+                        <small class="text-white-50 text-uppercase">Current Bounty</small><br>
+                        <span class="fs-3 fw-bold text-success" style="font-family: 'Pirata One', cursive;">
+                            ฿ {{ "{:,}".format(captain.bounty) }}
+                        </span>
+                    </div>
+
+                    <p class="fst-italic text-white-50">"{{ captain.bio or 'Setting sail for the Grand Line!' }}"</p>
+
+                    {% if session["user_id"] == captain.id %}
+                        <a href="/my_profile_edit" class="btn btn-outline-light btn-sm mt-2">
+                            <i class="bi bi-pencil-square"></i> Edit Profile
+                        </a>
+                    {% endif %}
+                </div>
             </div>
-            <!-- Display username -->
-            <h2 class="text-white pirate-font">{{ captain.username }}</h2>
-            <!-- Display bounty with currency symbol and thousands separator -->
-            <h4 class="text-warning pirate-font">฿ {{ "{:,}".format(captain.bounty or 0) }}</h4>
         </div>
 
-        <!-- Right Column: Captain's Log header and watch progress -->
-        <div class="col-md-9">
-            <!-- Header with edit button (only visible to profile owner) -->
-            <div class="d-flex justify-content-between align-items-end mb-2">
-                <h1 class="text-warning pirate-font display-4 mb-0">Captain's Log</h1>
-                <!-- Show settings button only if viewing your own profile -->
-                {% if session["user_id"] == captain.id %}
-                    <a href="/edit_profile/" class="btn btn-outline-warning btn-sm">
-                        <i class="bi bi-gear-fill"></i> Settings
-                    </a>
-                {% endif %}
-            </div>
-            <!-- Display user's motto or default message -->
-            <p class="lead text-light fst-italic">"{{ captain.motto if captain.motto else 'Setting sail for the One Piece...' }}"</p>
+        <div class="col-md-7 mb-4">
 
-            <!-- Progress bar showing how many episodes watched -->
-            <div class="mt-4">
-                <!-- Progress bar label showing fraction of episodes watched -->
-                <div class="d-flex justify-content-between small fw-bold text-uppercase text-secondary mb-1">
-                    <span>Journey Progress</span>
-                    <span>{{ watched }} / {{ total_eps }} Episodes</span>
+            <div class="card bg-dark text-white border-warning mb-4 shadow">
+                <div class="card-header border-warning bg-transparent">
+                    <h4 class="pirate-font text-warning mb-0"><i class="bi bi-flag-fill me-2"></i>Fleet Status</h4>
                 </div>
-                <!-- Animated progress bar -->
-                <div class="progress bg-dark border border-secondary" style="height: 25px;">
-                    <div class="progress-bar bg-danger progress-bar-striped progress-bar-animated"
-                         role="progressbar" style="width: {{ progress }}%;">
-                        {{ progress }}%
+                <div class="card-body">
+
+                    {% if owned_crew %}
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 class="mb-1">Captain of the <strong>{{ owned_crew.crew_name }}</strong></h5>
+                                <p class="text-white-50 small mb-0">"{{ owned_crew.motto }}"</p>
+                            </div>
+                            <a href="/crew/{{ owned_crew.id }}" class="btn btn-warning fw-bold">
+                                <i class="bi bi-rudder"></i> Manage Crew
+                            </a>
+                        </div>
+
+                    {% elif alliances %}
+                        <h5 class="mb-3">Sailing with:</h5>
+                        <ul class="list-group list-group-flush">
+                            {% for crew in alliances %}
+                                <li class="list-group-item bg-transparent text-white border-secondary d-flex justify-content-between align-items-center px-0">
+                                    <span><strong>{{ crew.crew_name }}</strong></span>
+                                    <a href="/crew/{{ crew.id }}" class="btn btn-outline-info btn-sm">View Crew</a>
+                                </li>
+                            {% endfor %}
+                        </ul>
+
+                    {% else %}
+                        <div class="text-center py-2">
+                            <p class="text-white-50 mb-3">This pirate is currently sailing the seas alone.</p>
+
+                            {% if session["user_id"] == captain.id %}
+                                <a href="/create_crew" class="btn btn-outline-warning">
+                                    <i class="bi bi-plus-circle"></i> Establish a Pirate Crew
+                                </a>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+
+                </div>
+            </div>
+
+            <div class="card bg-dark text-white border-secondary shadow">
+                <div class="card-header border-secondary bg-transparent">
+                    <h4 class="pirate-font text-info mb-0"><i class="bi bi-tv me-2"></i>Log Pose Progress</h4>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span>Anime Progress</span>
+                        <span class="text-info">{{ watched }} / {{ total_eps }} Eps</span>
                     </div>
+                    <div class="progress bg-secondary" style="height: 20px;">
+                        <div class="progress-bar bg-info progress-bar-striped progress-bar-animated"
+                             role="progressbar"
+                             style="width: {{ progress }}%;"
+                             aria-valuenow="{{ progress }}"
+                             aria-valuemin="0"
+                             aria-valuemax="100">
+                             {{ progress }}%
+                        </div>
+                    </div>
+
+                    {% if session["user_id"] == captain.id %}
+                    <div class="mt-3 text-end">
+                        <a href="/log_episode" class="btn btn-sm btn-warning">
+                            <i class="bi bi-check-lg"></i> Log Episodes
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="row mt-2">
+        <div class="col-12">
+            <div class="card bg-dark bg-opacity-75 text-white border-secondary shadow">
+                <div class="card-header border-secondary">
+                    <h3 class="pirate-font text-white mb-0">Captain's Logbook</h3>
+                </div>
+                <div class="card-body">
+                    {% if watchlog %}
+                        <div class="table-responsive">
+                            <table class="table table-dark table-hover table-borderless align-middle">
+                                <thead>
+                                    <tr class="text-white-50 border-bottom border-secondary">
+                                        <th scope="col">Ep #</th>
+                                        <th scope="col">Title</th>
+                                        <th scope="col">Rating</th>
+                                        <th scope="col">Notes</th>
+                                        <th scope="col">Date</th>
+                                        {% if session["user_id"] == captain.id %}
+                                            <th scope="col" class="text-end">Action</th>
+                                        {% endif %}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for entry in watchlog %}
+                                    <tr>
+                                        <td class="fw-bold text-info">{{ entry.episode_number }}</td>
+                                        <td>{{ entry.title }}</td>
+                                        <td>
+                                            <span class="badge {% if entry.rating >= 8 %}bg-success{% elif entry.rating >= 5 %}bg-warning{% else %}bg-danger{% endif %}">
+                                                {{ entry.rating }}/10
+                                            </span>
+                                        </td>
+                                        <td class="text-white-50 fst-italic small">{{ entry.comment or '-' }}</td>
+                                        <td class="small text-muted">{{ entry.timestamp }}</td>
+
+                                        {% if session["user_id"] == captain.id %}
+                                        <td class="text-end">
+                                            <form action="/delete_log" method="post" onsubmit="return confirm('Delete log for Episode {{ entry.episode_number }}?');">
+                                                <input type="hidden" name="episode_number" value="{{ entry.episode_number }}">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger border-0">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </form>
+                                        </td>
+                                        {% endif %}
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-center text-white-50 my-4">No episodes logged yet.</p>
+                    {% endif %}
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Tab Navigation: Overview, Watchlog, Fleet -->
-    <ul class="nav nav-tabs border-warning mb-4" id="profileTab" role="tablist">
-        <li class="nav-item">
-            <button class="nav-link active text-warning bg-transparent border-warning" data-bs-toggle="tab" data-bs-target="#overview">Overview</button>
-        </li>
-        <li class="nav-item">
-            <button class="nav-link text-warning bg-transparent border-warning" data-bs-toggle="tab" data-bs-target="#watchlog">Watchlog</button>
-        </li>
-        <li class="nav-item">
-            <button class="nav-link text-warning bg-transparent border-warning" data-bs-toggle="tab" data-bs-target="#fleet">Fleet & Alliances</button>
-        </li>
-    </ul>
-
-    <!-- Tab Content Container -->
-    <div class="tab-content text-start text-white bg-dark bg-opacity-50 p-4 rounded shadow-lg">
-
-        <!-- TAB 1: Overview - Biography and Details -->
-        <div class="tab-pane fade show active" id="overview">
-            <div class="row">
-                <!-- Biography Section -->
-                <div class="col-md-8">
-                    <h4 class="pirate-font text-warning border-bottom border-secondary pb-2">Biography</h4>
-                    <!-- Display bio or default message if none exists -->
-                    <p class="text-light fs-5">{{ captain.bio if captain.bio else 'This pirate has not yet shared their story.' }}</p>
-                </div>
-                <!-- Details Section -->
-                <div class="col-md-4">
-                    <h4 class="pirate-font text-warning border-bottom border-secondary pb-2">Details</h4>
-                    <!-- Display role or default to 'Rookie' -->
-                    <p><strong>Primary Role:</strong> {{ captain.role if captain.role else 'Rookie' }}</p>
-                    <p><strong>Status:</strong> Sailing the Grand Line</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- TAB 2: Watchlog - Episode reviews and ratings -->
-        <div class="tab-pane fade" id="watchlog">
-            <!-- Header with button to log new episode (only for profile owner) -->
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h4 class="pirate-font text-warning">Recent Reviews</h4>
-                {% if session["user_id"] == captain.id %}
-                    <a href="/log_episode" class="btn btn-warning btn-sm fw-bold">+ Log Episode</a>
-                {% endif %}
-            </div>
-            <!-- Display watchlog entries if they exist -->
-            {% if watchlog %}
-                <div class="list-group list-group-flush">
-                    <!-- Loop through each watchlog entry -->
-                    {% for entry in watchlog %}
-                    <div class="list-group-item bg-transparent text-white border-secondary px-0">
-                        <!-- Episode number and rating -->
-                        <div class="d-flex justify-content-between">
-                            <h5 class="text-warning mb-1">Episode {{ entry.episode_number }}</h5>
-                            <span class="badge bg-danger text-dark fw-bold" style="height: fit-content;">{{ entry.rating }}/10 ⭐</span>
-                        </div>
-                        <!-- User's comment about the episode -->
-                        <p class="mb-1 text-light">"{{ entry.comment }}"</p>
-                        <!-- Timestamp of when the log was created -->
-                        <small class="text-secondary">{{ entry.timestamp }}</small>
-                    </div>
-                    {% endfor %}
-                </div>
-            {% else %}
-                <!-- Show message if no watchlog entries exist -->
-                <p class="text-secondary text-center py-4">No logs recorded. Start your journey by logging an episode!</p>
-            {% endif %}
-        </div>
-
-        <!-- TAB 3: Fleet & Alliances - Crews owned and joined -->
-        <div class="tab-pane fade" id="fleet">
-            <!-- Section for crew ownership -->
-            <h4 class="pirate-font text-warning mb-3">Command</h4>
-            {% if owned_crew %}
-                <!-- Display crew that the user founded -->
-                <div class="card bg-secondary bg-opacity-25 border-warning mb-4">
-                    <div class="card-body">
-                        <h5 class="mb-0">Founder of: <a href="/crew/{{ owned_crew.id }}" class="text-warning text-decoration-none">{{ owned_crew.crew_name }}</a></h5>
-                    </div>
-                </div>
-            {% else %}
-                <!-- Message if user hasn't founded a crew -->
-                <p class="text-secondary">No crew founded yet.</p>
-            {% endif %}
-
-            <!-- Section for crews the user has joined -->
-            <h4 class="pirate-font text-warning mt-4 mb-3">Alliances (Joined Crews)</h4>
-            <div class="row">
-                <!-- Loop through all crews the user is a member of -->
-                {% for alliance in alliances %}
-                <div class="col-md-4 mb-3">
-                    <div class="card bg-dark border-secondary h-100">
-                        <div class="card-body">
-                            <!-- Crew name -->
-                            <h6 class="text-white">{{ alliance.crew_name }}</h6>
-                            <!-- Link to visit the crew page -->
-                            <a href="/crew/{{ alliance.id }}" class="btn btn-sm btn-outline-warning mt-2 w-100">Visit Ship</a>
-                        </div>
-                    </div>
-                </div>
-                {% else %}
-                <!-- Message if user hasn't joined any crews (Jinja2 for-else clause) -->
-                <div class="col-12">
-                    <p class="text-secondary">No alliances joined yet.</p>
-                </div>
-                {% endfor %}
-            </div>
-        </div>
-    </div>
 </div>
 {% endblock %}

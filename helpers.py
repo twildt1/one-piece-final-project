@@ -83,16 +83,18 @@ def apology(message, code=400):
 #I am adding a helped function that will search the OP API for the total episodes
 def get_total_episodes():
     try:
-        # Fetching all episodes from the API
-        response = requests.get("https://api.api-onepiece.com/v2/episodes/en/count")
+        # NOTE: I removed the "/count" from the URL so we get the list of all episodes
+        # This ensures len() counts the actual list items
+        response = requests.get("https://api.api-onepiece.com/v2/episodes/en")
+
         if response.status_code == 200:
             episodes = response.json()
-            return len(episodes) # The number of items in the list is the total count
+            return len(episodes)
     except Exception as e:
         print(f"Error fetching API: {e}")
 
-    # Fallback number if API fails (so your site doesn't crash)
-    return 1116
+    # Fallback number
+    return 1155
 
 
 #I am making a helper function to query an API for a characters picture
@@ -107,3 +109,70 @@ def get_character_images():
         data = response.json()
         return data['data']['characters']
     return []
+
+
+#I am going to add a helper function that will search the Episode name
+def get_episode_title(episode_number):
+    """Fetch the title of a specific episode from the API with DEBUGGING"""
+    try:
+        # Note: We are trying to fetch by ID/Number.
+        # If this fails, it's likely because '1015' is the Episode Number, but the API expects ID '5432'
+        url = f"https://api.api-onepiece.com/v2/episodes/en/{episode_number}"
+
+        print(f"--- DEBUG: Fetching {url} ---") # Check your terminal for this!
+
+        response = requests.get(url, timeout=3)
+        print(f"--- DEBUG: Status Code: {response.status_code} ---")
+
+        if response.status_code == 200:
+            data = response.json()
+            print(f"--- DEBUG: JSON Data: {data} ---") # See what the API actually returned
+
+            # The API might return the title as "title", "english_title", or something else
+            return data.get("title", f"Episode {episode_number}")
+
+    except Exception as e:
+        print(f"--- DEBUG: Error fetching title: {e} ---")
+
+    return f"Episode {episode_number}"
+
+#I create a function to pull from an API which contains character Pictures
+def get_avatar_from_ql(name):
+    """
+    FETCH IMAGE FROM JIKAN API (MyAnimeList).
+    We kept the function name 'get_avatar_from_ql' so you don't have to change app.py.
+    This API is much more reliable than the GraphQL one.
+    """
+    # Jikan (MyAnimeList) API Endpoint
+    url = "https://api.jikan.moe/v4/characters"
+
+    try:
+        # We send the name as a query parameter 'q'
+        # Jikan has fuzzy search, so "Luffy" will correctly find "Monkey D. Luffy"
+        response = requests.get(url, params={"q": name, "limit": 1}, timeout=5)
+
+        if response.status_code == 200:
+            data = response.json()
+            results = data.get("data", [])
+
+            if results:
+                first_match = results[0]
+
+                # Jikan image structure: data[0] -> images -> jpg -> image_url
+                images = first_match.get("images", {}).get("jpg", {})
+                image_url = images.get("image_url")
+
+                if image_url:
+                    print(f"Jikan found image for {name}")
+                    return {
+                        "avatar": image_url,
+                        # Jikan doesn't provide bounties easily, so we return None.
+                        # Your app.py is smart enough to keep the original bounty if this is None.
+                        "bounty": None
+                    }
+
+    except Exception as e:
+        print(f"Jikan API Error: {e}")
+
+    print(f"Jikan found no image for {name}")
+    return None
