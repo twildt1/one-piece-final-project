@@ -1,0 +1,62 @@
+{% extends "layout.html" %}
+
+<!--We are going to have the title be the returned crew-->
+{% block title %}{{ crew.crew_name }}{% endblock %}
+
+{% block main %}
+<div class="container mt-5">
+    <div class="text-center mb-5">
+        <!--We will return a heading of the returned crew name-->
+        <h1 class="display-3 text-danger" style="font-family: 'Pirata One', cursive;">{{ crew.crew_name }}</h1>
+        <!--I want to show the crews motto to the user-->
+        <p class="lead" style="color: #2c1b0e; opacity: 0.8;">{{ crew.motto }}</p>
+        <!--Add a horizontal line for styling-->
+        <hr class="border-warning w-25 mx-auto">
+    </div>
+
+    <div class="row">
+        <!--This class below means it is a column
+        that takes up medium screen size and takes up 4 out of 12 columns-->
+        <div class="col-md-4">
+            <div class="card bg-dark text-white border-secondary mb-4">
+                <div class="card-body text-center">
+                    <!--With all of the elements defined above I am going to do a heading of 5 and list fleet management-->
+                    <h5 class="text-warning">Fleet Management</h5>
+                    <!--I am going to pass in the crew id from the db-->
+                    <p class="small text-muted">ID: {{ crew.id }}</p>
+                    <!--I am going to create a button which allows a user to request to join the crew-->
+                    <a href="/crew/{{ crew.id }}/join" class="btn btn-warning w-100 fw-bold">
+                        Request to Join
+                    </a>
+                </div>
+            </div>
+            <!--I'll also create a button that allows the user to go back to the search-->
+            <a href="/search" class="btn btn-secondary w-100">Back to Search</a>
+        </div>
+
+        <!--Now I am going to create a structure which will show who is apart of the crew-->
+        <div class="col-md-8">
+            <h3 class="text-white mb-3">Crew Members</h3>
+            <div class="list-group">
+                <!--I need to create a for loop using the Jinja syntex-->
+                {% for member in members %}
+                <div class="list-group-item bg-dark text-white border-secondary d-flex justify-content-between align-items-center">
+                    <!--I use span as ithelps to seprate the text from the button better-->
+                    <!--Within this span I pass in the member.username and with the for loop
+                    it means it will show every username assocaited with the crew-->
+                    <span>{{ member.username }}</span>
+                    <!--I create the feature that allows a user to click a member profile and
+                    be directed to the said users profile-->
+                    <a href="/profile/{{ member.id }}" class="btn btn-sm btn-primary">View Crew Member</a>
+                </div>
+                {% else %}
+                <!--If no members appear we can assume there are no members in the crew-->
+                <div class="list-group-item bg-dark text-white border-secondary">
+                    This fleet currently has no active members.
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

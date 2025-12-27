@@ -1,0 +1,193 @@
+/* Size for brand */
+nav .navbar-brand
+{
+    font-size: xx-large;
+}
+
+/* Colors for brand */
+nav .navbar-brand .blue
+{
+    color: #537fbe;
+}
+nav .navbar-brand .red
+{
+    color: #ea433b;
+}
+nav .navbar-brand .yellow
+{
+    color: #f5b82e;
+}
+nav .navbar-brand .green
+{
+    color: #2e944b;
+}
+
+
+nav .navbar-brand {
+    font-size: 3rem !important;
+    letter-spacing: 3px;
+    font-family: 'Pirata One', system-ui;
+}
+
+
+/* HTML: <div class="one-piece"></div> */
+.one-piece {
+  height: 300px;
+  aspect-ratio: 1;
+  background:
+    radial-gradient(#000 70%,#0000 73%) 50% 57%/7% 7%,
+    radial-gradient(#000 70%,#0000 73%) 39% 48%/14% 14%,
+    radial-gradient(#000 70%,#0000 73%) 61% 48%/14% 14%,
+    linear-gradient(#000 0 0) 50% 39%/69% 2px,
+    linear-gradient(#000 0 0) 50% 35.8%/59% 2px,
+    linear-gradient(#000 0 0) 50% 31%/42% 2px,
+    radial-gradient(50% 100% at 50% 134%,#f0b114 98%,#0000 )50% 15%/44% 19%,
+    radial-gradient(50% 84% at 50% 100%,#cf091a 98%,#0000 )50% 24%/44% 16%,
+    radial-gradient(50% 23% at 50% 100%,#F0B114 98%,#0000 )50% 24%/68% 20%,
+    radial-gradient(#fff 67.5%,#000 68.5% 70%,#0000 71%) 50% 34%/47% 47%;
+  background-repeat: no-repeat;
+  position: relative;
+}
+.one-piece:before {
+  content: "";
+  position: absolute;
+  background:
+    linear-gradient(#000 0 0) 78% 50%/4% 43%,
+    linear-gradient(#000 0 0) 22% 50%/4% 43%,
+    linear-gradient(#000 0 0) 50% 50%/4% 47%,
+    radial-gradient(75% 57% at 50% 0,#0000 91%,#000 93% 98%,#0000 ),
+    radial-gradient(85% 76% at 50% 0,#0000 93%,#000 95% 98%,#0000 )#fff;
+  background-repeat: no-repeat;
+  inset: 55% 37% 20%;
+  border-radius: 14% 14% 30px 30px/50% 50% 30px 30px;
+  border: 2px solid #000;
+  z-index: -1;
+}
+.one-piece:after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  padding: 10%;
+  background:
+    radial-gradient(#fff 66%,#0000 71%) 10% 97%/10% 11%,
+    radial-gradient(#fff 66%,#0000 71%) 3% 90%/10% 11%,
+    radial-gradient(#fff 66%,#0000 71%) 97% 91%/10% 11%,
+    radial-gradient(#fff 66%,#0000 71%) 89% 98%/10% 11%,
+    radial-gradient(#fff 66%,#0000 71%) 89% 2%/10% 11%,
+    radial-gradient(#fff 66%,#0000 71%) 98% 9%/12% 10%,
+    radial-gradient(#fff 66%,#0000 71%) 2% 10%/11% 10%,
+    radial-gradient(#fff 66%,#0000 71%) 9% 2%/10% 11%,
+    linear-gradient(45deg,#0000 47%, #fff 0 53%,#0000 0) content-box,
+    linear-gradient(-45deg,#0000 47%, #fff 0 53%,#0000 0) content-box,#000;
+  background-repeat: no-repeat;
+  filter: blur(4px) contrast(10);
+}
+
+
+
+/* Wanted Poster Styles */
+@import url('https://fonts.googleapis.com/css2?family=IM+Fell+English+SC&display=swap');
+
+/* dark background so the poster really stands out */
+.wanted-body {
+    background-color: #1a1a1a;
+    display: flex;
+    justify-content: center;
+    padding: 50px 0;
+}
+
+/* main poster - tan/beige gradient to look like aged parchment */
+.wanted-poster {
+    background: linear-gradient(135deg, #F5DEB3, #DEB887, #D2B48C);
+    color: #3B2F2F;
+    font-family: "IM Fell English SC", serif;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    text-align: center;
+    padding: 30px;
+    width: 620px; /* keep it a fixed size so it doesn't get wonky */
+    height: 900px;
+    box-shadow: 0 0 50px rgba(0,0,0,0.8);
+    border: 2px solid #3B2F2F;
+}
+
+/* the big "WANTED" at the top - stretched vertically with a shadow */
+.wanted__title > h1 {
+    font-size: 5rem;
+    text-transform: uppercase;
+    font-weight: bold;
+    transform: translateY(10%) scaleY(1.5);
+    text-shadow: 0 5px 0 #3B2F2F;
+    margin-bottom: 20px;
+}
+
+/* image frame in the middle of the poster */
+.wanted__img {
+    width: 100%;
+    height: 380px;
+    border: 8px solid #3B2F2F;
+    overflow: hidden;
+    background-color: #f4e4bc;
+}
+
+/* character image with a vintage sepia filter */
+.wanted__img > img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: sepia(0.4) contrast(1.1);
+}
+
+/* "DEAD OR ALIVE" text under the image */
+.wanted__subtitle > p {
+    font-size: 2rem;
+    text-transform: uppercase;
+    font-weight: bold;
+    letter-spacing: 8px;
+    margin-top: 15px;
+}
+
+/* character name - stretched tall and slightly compressed horizontally */
+.wanted__name > h2 {
+    font-size: 3.5rem;
+    text-transform: uppercase;
+    font-weight: bold;
+    white-space: nowrap;
+    transform: scaleY(1.8) scaleX(0.9);
+    margin: 30px 0;
+}
+
+/* bounty amount styling - also stretched for emphasis */
+.wanted__bounty-amount > p {
+    font-size: 2.2rem;
+    text-transform: uppercase;
+    transform: scaleY(1.3) scaleX(1.2);
+    font-weight: bold;
+}
+
+/* bottom section with fine print and marine logo */
+.wanted__footer {
+    display: grid;
+    grid-template-columns: 70% 25%;
+    width: 100%;
+    margin-top: 20px;
+    border-top: 2px solid #3B2F2F;
+    padding-top: 10px;
+}
+
+/* "MARINE" text in the bottom right corner */
+.marine > h3 {
+    font-size: 1.2rem;
+    text-transform: uppercase;
+    font-weight: bold;
+    transform: scaleY(2.5) scaleX(1.1);
+}
+
+/* button to go back to search */
+.back-btn {
+    margin-top: 20px;
+    font-family: sans-serif;
+}

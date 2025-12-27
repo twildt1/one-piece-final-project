@@ -1,0 +1,164 @@
+{% extends "layout.html" %}
+
+{% block title %}{{ captain.username }}'s Profile{% endblock %}
+
+{% block main %}
+<div class="container mt-5">
+    <!-- Profile Header Section: Avatar, Username, Bounty, and Progress Bar -->
+    <div class="row align-items-center mb-5 text-start">
+        <!-- Left Column: Avatar and Basic Info -->
+        <div class="col-md-3 text-center">
+            <!-- Circular avatar with icon (styled like a wanted poster bounty photo) -->
+            <div class="bg-secondary rounded-circle mb-3 mx-auto d-flex justify-content-center align-items-center shadow"
+                 style="width: 180px; height: 180px; border: 5px solid #ffca28; background: radial-gradient(#6c757d, #343a40);">
+                <i class="bi bi-person-fill" style="font-size: 6rem; color: #ffca28;"></i>
+            </div>
+            <!-- Display username -->
+            <h2 class="text-white pirate-font">{{ captain.username }}</h2>
+            <!-- Display bounty with currency symbol and thousands separator -->
+            <h4 class="text-warning pirate-font">฿ {{ "{:,}".format(captain.bounty or 0) }}</h4>
+        </div>
+
+        <!-- Right Column: Captain's Log header and watch progress -->
+        <div class="col-md-9">
+            <!-- Header with edit button (only visible to profile owner) -->
+            <div class="d-flex justify-content-between align-items-end mb-2">
+                <h1 class="text-warning pirate-font display-4 mb-0">Captain's Log</h1>
+                <!-- Show settings button only if viewing your own profile -->
+                {% if session["user_id"] == captain.id %}
+                    <a href="/edit_profile/" class="btn btn-outline-warning btn-sm">
+                        <i class="bi bi-gear-fill"></i> Settings
+                    </a>
+                {% endif %}
+            </div>
+            <!-- Display user's motto or default message -->
+            <p class="lead text-light fst-italic">"{{ captain.motto if captain.motto else 'Setting sail for the One Piece...' }}"</p>
+
+            <!-- Progress bar showing how many episodes watched -->
+            <div class="mt-4">
+                <!-- Progress bar label showing fraction of episodes watched -->
+                <div class="d-flex justify-content-between small fw-bold text-uppercase text-secondary mb-1">
+                    <span>Journey Progress</span>
+                    <span>{{ watched }} / {{ total_eps }} Episodes</span>
+                </div>
+                <!-- Animated progress bar -->
+                <div class="progress bg-dark border border-secondary" style="height: 25px;">
+                    <div class="progress-bar bg-danger progress-bar-striped progress-bar-animated"
+                         role="progressbar" style="width: {{ progress }}%;">
+                        {{ progress }}%
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab Navigation: Overview, Watchlog, Fleet -->
+    <ul class="nav nav-tabs border-warning mb-4" id="profileTab" role="tablist">
+        <li class="nav-item">
+            <button class="nav-link active text-warning bg-transparent border-warning" data-bs-toggle="tab" data-bs-target="#overview">Overview</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link text-warning bg-transparent border-warning" data-bs-toggle="tab" data-bs-target="#watchlog">Watchlog</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link text-warning bg-transparent border-warning" data-bs-toggle="tab" data-bs-target="#fleet">Fleet & Alliances</button>
+        </li>
+    </ul>
+
+    <!-- Tab Content Container -->
+    <div class="tab-content text-start text-white bg-dark bg-opacity-50 p-4 rounded shadow-lg">
+
+        <!-- TAB 1: Overview - Biography and Details -->
+        <div class="tab-pane fade show active" id="overview">
+            <div class="row">
+                <!-- Biography Section -->
+                <div class="col-md-8">
+                    <h4 class="pirate-font text-warning border-bottom border-secondary pb-2">Biography</h4>
+                    <!-- Display bio or default message if none exists -->
+                    <p class="text-light fs-5">{{ captain.bio if captain.bio else 'This pirate has not yet shared their story.' }}</p>
+                </div>
+                <!-- Details Section -->
+                <div class="col-md-4">
+                    <h4 class="pirate-font text-warning border-bottom border-secondary pb-2">Details</h4>
+                    <!-- Display role or default to 'Rookie' -->
+                    <p><strong>Primary Role:</strong> {{ captain.role if captain.role else 'Rookie' }}</p>
+                    <p><strong>Status:</strong> Sailing the Grand Line</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: Watchlog - Episode reviews and ratings -->
+        <div class="tab-pane fade" id="watchlog">
+            <!-- Header with button to log new episode (only for profile owner) -->
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="pirate-font text-warning">Recent Reviews</h4>
+                {% if session["user_id"] == captain.id %}
+                    <a href="/log_episode" class="btn btn-warning btn-sm fw-bold">+ Log Episode</a>
+                {% endif %}
+            </div>
+            <!-- Display watchlog entries if they exist -->
+            {% if watchlog %}
+                <div class="list-group list-group-flush">
+                    <!-- Loop through each watchlog entry -->
+                    {% for entry in watchlog %}
+                    <div class="list-group-item bg-transparent text-white border-secondary px-0">
+                        <!-- Episode number and rating -->
+                        <div class="d-flex justify-content-between">
+                            <h5 class="text-warning mb-1">Episode {{ entry.episode_number }}</h5>
+                            <span class="badge bg-danger text-dark fw-bold" style="height: fit-content;">{{ entry.rating }}/10 ⭐</span>
+                        </div>
+                        <!-- User's comment about the episode -->
+                        <p class="mb-1 text-light">"{{ entry.comment }}"</p>
+                        <!-- Timestamp of when the log was created -->
+                        <small class="text-secondary">{{ entry.timestamp }}</small>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <!-- Show message if no watchlog entries exist -->
+                <p class="text-secondary text-center py-4">No logs recorded. Start your journey by logging an episode!</p>
+            {% endif %}
+        </div>
+
+        <!-- TAB 3: Fleet & Alliances - Crews owned and joined -->
+        <div class="tab-pane fade" id="fleet">
+            <!-- Section for crew ownership -->
+            <h4 class="pirate-font text-warning mb-3">Command</h4>
+            {% if owned_crew %}
+                <!-- Display crew that the user founded -->
+                <div class="card bg-secondary bg-opacity-25 border-warning mb-4">
+                    <div class="card-body">
+                        <h5 class="mb-0">Founder of: <a href="/crew/{{ owned_crew.id }}" class="text-warning text-decoration-none">{{ owned_crew.crew_name }}</a></h5>
+                    </div>
+                </div>
+            {% else %}
+                <!-- Message if user hasn't founded a crew -->
+                <p class="text-secondary">No crew founded yet.</p>
+            {% endif %}
+
+            <!-- Section for crews the user has joined -->
+            <h4 class="pirate-font text-warning mt-4 mb-3">Alliances (Joined Crews)</h4>
+            <div class="row">
+                <!-- Loop through all crews the user is a member of -->
+                {% for alliance in alliances %}
+                <div class="col-md-4 mb-3">
+                    <div class="card bg-dark border-secondary h-100">
+                        <div class="card-body">
+                            <!-- Crew name -->
+                            <h6 class="text-white">{{ alliance.crew_name }}</h6>
+                            <!-- Link to visit the crew page -->
+                            <a href="/crew/{{ alliance.id }}" class="btn btn-sm btn-outline-warning mt-2 w-100">Visit Ship</a>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <!-- Message if user hasn't joined any crews (Jinja2 for-else clause) -->
+                <div class="col-12">
+                    <p class="text-secondary">No alliances joined yet.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

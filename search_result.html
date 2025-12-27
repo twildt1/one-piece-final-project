@@ -1,0 +1,63 @@
+{% extends "layout.html" %}
+{% block title %}Wanted: {{ character.name }}{% endblock %}
+{% block main %}
+
+<div class="wanted-body">
+    <div class="wanted-poster">
+
+        <!-- big WANTED header -->
+        <div class="wanted__title">
+            <h1>WANTED</h1>
+        </div>
+
+        <!-- main identity section with image, subtitle, and name -->
+        <div class="wanted__identity-info">
+            <!-- character photo or placeholder if no image -->
+            <div class="wanted__img">
+                {% if character.image %}
+                    <img src="{{ character.image }}" alt="{{ character.name }}">
+                {% else %}
+                    <!-- anchor icon as fallback if there's no character image -->
+                    <div style="font-size: 10rem; opacity: 0.1; padding-top: 40px;">⚓</div>
+                {% endif %}
+            </div>
+
+            <!-- dead or alive text -->
+            <div class="wanted__subtitle">
+                <p>DEAD OR ALIVE</p>
+            </div>
+
+            <!-- character name -->
+            <div class="wanted__name">
+                <h2>{{ character.name }}</h2>
+            </div>
+        </div>
+
+        <!-- bounty information section -->
+        <div class="wanted__bounty-info">
+            <!-- the actual bounty amount (replace periods with commas) -->
+            <div class="wanted__bounty-amount">
+                <p>฿ {{ character.bounty.replace('.', ',') if character.bounty else 'Unknown' }}-</p>
+            </div>
+
+            <!-- footer with legal disclaimer and marine branding -->
+            <div class="wanted__footer">
+                <!-- fine print about taxes and reporting -->
+                <div class="wanted__desc">
+                    <p>MARINE HEADQUARTERS. DOES NOT INCLUDE TAXES OR BERRIES ACCRUED DURING PIRACY. IF SEEN, CONTACT YOUR LOCAL MARINE CAPTAIN IMMEDIATELY.</p>
+                </div>
+                <!-- marine logo/text -->
+                <div class="marine">
+                    <h3>MARINE</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- back button below the poster -->
+<div class="text-center back-btn">
+    <a href="/search" class="btn btn-outline-light mb-5">Return to Search</a>
+</div>
+
+{% endblock %}

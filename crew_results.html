@@ -1,0 +1,34 @@
+{% extends "layout.html" %}
+
+{% block title %}Crew Search Results{% endblock %}
+
+{% block main %}
+<div class="container mt-5">
+    <h2 class="text-white mb-4" style="font-family: 'Pirata One', cursive;">Fleets Found!</h2>
+
+    <div class="list-group shadow">
+        <!--I create a for loop so that we can have many results show for our query-->
+        {% for crew in crews %}
+                    <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center bg-dark text-white border-secondary">
+            <div>
+                <h5 class="mb-1" style="color: #ffca28; font-weight: bold;">{{ crew.crew_name }}</h5>
+                <small class="text-muted">Motto: {{ crew.motto }}</small>
+            </div>
+            <div>
+                <a href="/crew/{{ crew.id }}" class="btn btn-primary btn-sm">View Fleet</a>
+            </div>
+        </div>
+        <!--I pass a Jinja else statement for if the user was not found in the search-->
+        {% else %}
+            <div class="alert alert-warning">No Fleets match your search.</div>
+        {% endfor %}
+        </div>
+</div>
+
+<!--Now I will create a option that will allow the user to go back to the search-->
+<div class="mt-4">
+    <!--we call a bootstrap class that will style our link like a button rather than just having it underlined text
+    it make it look much much much better for our website-->
+    <a href="/search" class="btn btn-warning">Back to Search</a>
+</div>
+{% endblock %}

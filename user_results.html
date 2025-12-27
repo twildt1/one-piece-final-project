@@ -1,0 +1,34 @@
+{% extends "layout.html" %}
+
+{% block title %}Search Results{% endblock %}
+
+{% block main %}
+<div class="container mt-5">
+    <!--I pass in a for loop that will show the users that were found pertaining to the users search
+    remember in the SQL we did a LIKE so it will show more of a search query rather than only returning a 1-1 result-->
+    <h2 class="list-group shadow">Captains Found!</h2>
+    <div class="list-group shadow">
+        {% for user in users %}
+        <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center bg-dark text-white border-secondary">
+            <div>
+                <h5 class="mb-1" style="color: #ffca28; font-weight: bold;">{{ user.username }}</h5>
+                <small class="text-muted">ID: {{ user.id }}</small>
+            </div>
+            <div>
+                <a href="/profile/{{ user.id }}" class="btn btn-primary btn-sm">View Profile</a>
+            </div>
+        </div>
+        <!--I pass a Jinja else statement for if the user was not found in the search-->
+        {% else %}
+            <div class="alert alert-warning">No Captains match your search.</div>
+        {% endfor %}
+        </div>
+</div>
+
+<!--Now I will create a option that will allow the user to go back to the search-->
+<div class="mt-4">
+    <!--we call a bootstrap class that will style our link like a button rather than just having it underlined text
+    it make it look much much much better for our website-->
+    <a href="/search" class="btn btn-warning">Back to Search</a>
+</div>
+{% endblock %}

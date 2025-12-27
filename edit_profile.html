@@ -1,0 +1,59 @@
+{% extends "layout.html" %}
+
+{% block title %}Edit Profile{% endblock %}
+
+{% block main %}
+<div class="container mt-5">
+    <div class="card mx-auto shadow-lg" style="max-width: 500px; background-color: #f4e4bc; border: 3px solid #5C4033;">
+        <div class="card-body text-dark">
+            <!--I create the heading telling the user what this page is-->
+            <h2 style="font-family: 'Pirata One';">Update Captain's Log</h2>
+            <!--I create a form action that allows for a post and tells it to send the data to /edit_profile in my python script-->
+            <form action="/edit_profile/" method="post" class="text-start mt-4">
+                <!--Now I create the contents of the selections a user can do within the form element-->
+                <div class="mb-3">
+                    <!--I allow them different edit features related to their crew/profile-->
+                    <label class="form-label fw-bold" style>Ship Roles</label>
+                    <!--Here is where we define the options within the page-->
+                    <select name="role" class="form-select">
+                        <!--We are going to use Jinja syntax to create an if statement for each defined option we have
+                        It is going to pull the role that you have within the crew through the db-->
+                        <option value="Captain" {% if user.role == 'Captain' %}selected{% endif %}>Captain</option>
+                        <option value="Swordsman" {% if user.role == 'Swordsman' %}selected{% endif %}>Swordsman</option>
+                        <option value="Navigator" {% if user.role == 'Navigator' %}selected{% endif %}>Navigator</option>
+                        <option value="Cook" {% if user.role == 'Cook' %}selected{% endif %}>Cook</option>
+                        <option value="Doctor" {% if user.role == 'Doctor' %}selected{% endif %}>Doctor</option>
+                        <option value="Sniper" {% if user.role == 'Sniper' %}selected{% endif %}>Sniper</option>
+                        <option value="Martial Artist" {% if user.role == 'Martial Artist' %}selected{% endif %}>Martial Artist</option>
+                        <option value="Archaeologist" {% if user.role == 'Archaeologist' %}selected{% endif %}>Archaeologist</option>
+                        <option value="Musician" {% if user.role == 'Musician' %}selected{% endif %}>Musician</option>
+                        <option value="Shipwright" {% if user.role == 'Shipwright' %}selected{% endif %}>Shipwright</option>
+                        <option value="Helmsman" {% if user.role == 'Helmsman' %}selected{% endif %}>Helmsman</option>
+                        <option value="Quartermaster" {% if user.role == 'Quartermaster' %}selected{% endif %}>Quartermaster</option>
+                        <option value="Cabin Boy/Girl" {% if user.role == 'Cabin Boy/Girl' %}selected{% endif %}>Cabin Boy/Girl</option>
+                        <option value="Scout" {% if user.role == 'Scout' %}selected{% endif %}>Scout</option>
+                        <option value="Blacksmith" {% if user.role == 'Blacksmith' %}selected{% endif %}>Blacksmith</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <!--Now I will create the label for the user to edit their bio-->
+                    <label class="form-label fw-bold">Your Bio</label>
+                    <!--textarea will create a multi-line plain-text editing control
+                    I use bio to help identify that it is going to be submitted to
+                    the bio column for table users in my db-->
+                    <!--I also create a conditional to show the user bio if one should already exist-->
+                    <textarea name="bio" class="form-control" rows="4">{{ user.bio if user.bio }}</textarea>
+                </div>
+
+                <!--Next I will create the submit button-->
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-success flex-grow-1 fw-bold">Save Changes</button>
+                    <!--I am also going to create a cancel button should the user decide they don't want to make the change-->
+                    <a href="/profile/{{ session['user_id'] }}" class="btn btn-danger">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,142 @@
+{% extends "layout.html" %}
+
+{% block title %}Log Episode{% endblock %}
+
+{% block main %}
+<div class="container mt-5">
+    <div class="card mx-auto shadow-lg" style="max-width: 600px; background-color: #f4e4bc; border: 3px solid #5C4033;">
+        <div class="card-body text-dark">
+            <!-- Header -->
+            <h2 class="text-center mb-4" style="font-family: 'Pirata One', cursive;">
+                📺 Log Your Journey
+            </h2>
+
+            <p class="text-center text-muted mb-4">
+                Track your progress through the Grand Line! ({{ watched_episodes|length }} / {{ total_episodes }} episodes watched)
+            </p>
+
+            <!-- Form -->
+            <form action="/log_episode" method="post">
+
+                <!-- Episode Number Input -->
+                <div class="mb-4">
+                    <label for="episode_number" class="form-label fw-bold">
+                        Episode Number
+                    </label>
+                    <input
+                        type="number"
+                        class="form-control"
+                        id="episode_number"
+                        name="episode_number"
+                        min="1"
+                        max="{{ total_episodes }}"
+                        placeholder="Enter episode number (1-{{ total_episodes }})"
+                        required
+                        autofocus
+                    >
+                    <small class="form-text text-muted">
+                        Enter the episode number you just watched
+                    </small>
+                </div>
+
+                <!-- Rating Input -->
+                <div class="mb-4">
+                    <label for="rating" class="form-label fw-bold">
+                        Rating (1-10)
+                    </label>
+                    <div class="d-flex align-items-center gap-3">
+                        <input
+                            type="range"
+                            class="form-range flex-grow-1"
+                            id="rating"
+                            name="rating"
+                            min="1"
+                            max="10"
+                            value="8"
+                            oninput="document.getElementById('ratingValue').textContent = this.value"
+                        >
+                        <span class="badge bg-danger text-white fs-5" id="ratingValue" style="min-width: 50px;">8</span>
+                    </div>
+                    <small class="form-text text-muted">
+                        Slide to rate this episode
+                    </small>
+                </div>
+
+                <!-- Comment Textarea -->
+                <div class="mb-4">
+                    <label for="comment" class="form-label fw-bold">
+                        Your Thoughts
+                    </label>
+                    <textarea
+                        class="form-control"
+                        id="comment"
+                        name="comment"
+                        rows="4"
+                        placeholder="What did you think of this episode? (Optional)"
+                    ></textarea>
+                    <small class="form-text text-muted">
+                        Share your reactions, favorite moments, or theories!
+                    </small>
+                </div>
+
+                <!-- Buttons -->
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-success flex-grow-1 fw-bold">
+                        <i class="bi bi-check-circle"></i> Log Episode
+                    </button>
+                    <a href="/profile/{{ session['user_id'] }}" class="btn btn-danger">
+                        Cancel
+                    </a>
+                </div>
+            </form>
+
+            <!-- Recently Watched (Optional visual aid) -->
+            {% if watched_episodes %}
+            <div class="mt-4 pt-3 border-top">
+                <h6 class="text-muted mb-2">Recently Watched:</h6>
+                <div class="d-flex flex-wrap gap-2">
+                    {% for ep in watched_episodes[-10:] %}
+                        <span class="badge bg-secondary">Ep {{ ep }}</span>
+                    {% endfor %}
+                    {% if watched_episodes|length > 10 %}
+                        <span class="badge bg-dark">+{{ watched_episodes|length - 10 }} more</span>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+        </div>
+    </div>
+
+    <!-- Quick Stats Card -->
+    <div class="card mx-auto mt-3 shadow" style="max-width: 600px; background-color: #2c1b0e; border: 2px solid #ffca28;">
+        <div class="card-body text-center">
+            <div class="row">
+                <div class="col-4">
+                    <h5 class="text-warning">{{ watched_episodes|length }}</h5>
+                    <small class="text-light">Watched</small>
+                </div>
+                <div class="col-4">
+                    <h5 class="text-warning">{{ total_episodes - watched_episodes|length }}</h5>
+                    <small class="text-light">Remaining</small>
+                </div>
+                <div class="col-4">
+                    <h5 class="text-warning">{{ ((watched_episodes|length / total_episodes * 100) | round(1)) }}%</h5>
+                    <small class="text-light">Complete</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Custom styling for the range slider */
+    .form-range::-webkit-slider-thumb {
+        background: #dc3545;
+    }
+
+    .form-range::-moz-range-thumb {
+        background: #dc3545;
+    }
+</style>
+{% endblock %}

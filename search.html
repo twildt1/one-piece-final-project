@@ -1,0 +1,50 @@
+{% extends "layout.html" %}
+{% block title %}Search the New World{% endblock %}
+
+{% block main %}
+<div class="container text-center mt-5">
+    <h1 style="font-family: 'Pirata One'; font-size: 4.5rem;" class="mb-4">
+        <!--I assign these classes from my styles.css so I can pass these into the first char of each word
+        it will give it this cool design -->
+        <span class="red">S</span>earch <span class="blue">t</span>he <span class="yellow">S</span>eas
+    </h1>
+    <!--We use post as method here because it is hidden from the URL and allows for more secrecy-->
+    <form action="/search" method="post" class="mx-auto" style="max-width: 650px;">
+        <!--This class contains 3 elements from bootstrap
+        1) input-group: combines input field and button into one
+        2) mb-#: margin bottom size
+        3) shadow-sm: adds a small drop shadow effect around the element
+        I use these elements to help create a nice looking search bar-->
+        <div class="input-group mb-4 shadow-sm">
+            <!--This is the text input for the search query-->
+            <!--make note of the name "query", will have to make reference to it in app.py-->
+            <!-- form-control: Bootstrap class that styles the input with proper borders, padding, and responsive behavior-->
+            <input name="query" type="text" class="form-control form-control-lg" placeholder="Search for a pirate, captain, or crew!" required autofocus>
+            <!--This is going to be the submit button the user will use and will perform the query after hitting submit-->
+            <button class="btn btn-warning-sign btn-lg px-4" type="submit">Set Sail</button>
+        </div>
+
+        <!--Next I create my types of searches-->
+        <div class="d-flex justify-content-center gap-4 bg-light p-3 rounded-pill boarder shadow-sm">
+            <div class="form-check">
+                <!--The first type of search is for a character,this will be utilizing our API-->
+                <input class="form-check-input" type="radio" name="search_type" id="char" value="character" checked>
+                <label class="form-check-label fw-bold" for="char">Pirate</label>
+            </div>
+
+            <div class="form-check">
+                <!--The next type of search is for users-->
+                <input class="form-check-input" type="radio" name="search_type" id="user" value="user">
+                <label class="form-check-label fw-bold" for="user">Captain (User)</label>
+            </div>
+
+            <div class="form-check">
+                <!--The final type of search is to search for crews-->
+                <input class="form-check-input" type="radio" name="search_type" id="crew" value="crew">
+                <!--The for is used to connect the label to the input we created above-->
+                <label class="form-check-label fw-bold" for="crew">Crew</label>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}

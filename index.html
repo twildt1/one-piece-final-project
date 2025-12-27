@@ -1,0 +1,20 @@
+{% extends "layout.html" %}
+
+{% block title %}Home{% endblock %}
+
+{% block main %}
+<div class="container mt-5 text-center">
+    <!--I'll create a generic welcome message for my user-->
+    <h1 class="text-warning" style="font-family: 'Pirata One', cursive;">Welcome Aboard, Captain!</h1>
+    <!--I then want to create a paragraph message that gives some sense of direction to the user
+    when they first access the website-->
+    <p class="text-white">The Grand Line awaits. Use the search to find your crew or check out your profile.</p>
+
+    <div class="mt-4">
+        <!--Create a link to the search-->
+        <a href="/search" class="btn btn-primary btn-lg">Start Searching</a>
+        <!--Create a link to their profile-->
+        <a href="/profile/{{ session['user_id'] }}" class="btn btn-outline-dark btn-lg">View My Log</a>
+    </div>
+</div>
+{% endblock %}

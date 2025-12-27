@@ -1,0 +1,28 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Error
+{% endblock %}
+
+{% block main %}
+    <div class="container mt-5">
+        <h1 class="mb-4 text-danger" style="font-family: 'Pirata One'; font-size: 3rem;">
+            {{ message }}
+        </h1>
+    </div>
+
+    <div class = "error-image">
+        <img src="{{ url_for('static', filename='images/Luffy Error Message.jpeg') }}"
+        alt="Luffy Error Message"
+        class="img-fluid rounded border border-danger shadow-lg"
+        style="max-width: 500px;"
+        >
+    </div>
+
+    <div class="mt-4">
+        <!--the history.back() will allow the user to go back to where they were before the error occured-->
+        <button class="btn btn-warning btn-lg px-5" onclick="history.back()">
+            Try Again, Captain!
+        </button>
+    </div>
+{% endblock %}
