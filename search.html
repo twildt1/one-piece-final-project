@@ -1,4 +1,6 @@
 {% extends "layout.html" %}
+
+<!--Pass in the title-->
 {% block title %}Search the New World{% endblock %}
 
 {% block main %}
@@ -6,7 +8,7 @@
     <h1 style="font-family: 'Pirata One'; font-size: 4.5rem;" class="mb-4">
         <!--I assign these classes from my styles.css so I can pass these into the first char of each word
         it will give it this cool design -->
-        <span class="red">S</span>earch <span class="blue">t</span>he <span class="yellow">S</span>eas
+        <span class="text-danger">S</span>earch <span class="text-primary">t</span>he <span class="text-warning">S</span>eas
     </h1>
     <!--We use post as method here because it is hidden from the URL and allows for more secrecy-->
     <form action="/search" method="post" class="mx-auto" style="max-width: 650px;">

@@ -1,9 +1,11 @@
 {% extends "layout.html" %}
 
+<!--Pass in the title-->
 {% block title %}Notifications{% endblock %}
 
 {% block main %}
 <div class="container mt-5">
+
 
     <h2 class="pirate-font text-warning text-center mb-4">Post Bird Notifications</h2>
 
@@ -15,24 +17,30 @@
                     <i class="bi bi-envelope-paper-fill"></i> Invites Received
                 </div>
                 <div class="card-body p-0">
+                    <!--the contents will be utilized below should the user recieve an invite-->
                     {% if received %}
+                    <!--Create a table-->
                         <table class="table table-dark table-hover mb-0">
                             <tbody>
                                 {% for req in received %}
                                 <tr>
                                     <td>
+                                        <!--Pass in the requesters name and their crew name-->
                                         <strong class="text-info">{{ req.sender_name }}</strong> invited you to<br>
                                         <span class="text-warning">{{ req.crew_name }}</span>
                                     </td>
                                     <td class="text-end align-middle">
+                                        <!--Should the decision on a request have no action taken on it yet(pending)-->
                                         {% if req.status == 'pending' %}
                                             <form action="/respond_invite" method="post" class="d-inline">
                                                 <input type="hidden" name="invite_id" value="{{ req.id }}">
+                                                <!--Create 2 buttons which will allow the users to either accept or reject the users request-->
                                                 <button type="submit" name="action" value="accept" class="btn btn-sm btn-success">Accept</button>
                                                 <button type="submit" name="action" value="reject" class="btn btn-sm btn-danger">Reject</button>
                                             </form>
                                         {% else %}
                                             <span class="badge {% if req.status == 'accepted' %}bg-success{% else %}bg-danger{% endif %}">
+                                                <!--This takes the status (e.g., "accepted") and makes it ALL CAPS-->
                                                 {{ req.status|upper }}
                                             </span>
                                         {% endif %}
@@ -41,6 +49,7 @@
                                 {% endfor %}
                             </tbody>
                         </table>
+                        <!--If the user has not got a request or has any pending request then we will pass in the message of no new mail to them-->
                     {% else %}
                         <p class="p-3 text-white-50 text-center">No new mail.</p>
                     {% endif %}
@@ -48,30 +57,38 @@
             </div>
         </div>
 
+        <!--We additionally need to show the user what invite they have sent out to others-->
+
         <div class="col-md-6">
             <div class="card bg-dark text-white border-secondary">
                 <div class="card-header border-secondary fw-bold">
                     <i class="bi bi-send-fill"></i> Invites Sent
                 </div>
                 <div class="card-body p-0">
+                    <!--Should the user have any sent out invites which are pending decisions-->
                     {% if sent %}
                         <table class="table table-dark table-hover mb-0">
                             <tbody>
+                                <!--Create a for loop to show each invite a user has sent out-->
                                 {% for req in sent %}
                                 <tr>
                                     <td>
+                                        <!--Pass in the recievers username and your crew name-->
                                         To: <strong class="text-info">{{ req.receiver_name }}</strong><br>
                                         Crew: {{ req.crew_name }}
                                     </td>
                                     <td class="text-end align-middle">
                                         <span class="badge {% if req.status == 'accepted' %}bg-success{% elif req.status == 'rejected' %}bg-danger{% else %}bg-secondary{% endif %}">
+                                            <!--Just as with the invites we make this status uppercase-->
                                             {{ req.status|upper }}
                                         </span>
                                     </td>
                                 </tr>
+                                <!--End the for loop-->
                                 {% endfor %}
                             </tbody>
                         </table>
+                        <!--Else this means the user has not sent any invites out to any users-->
                     {% else %}
                         <p class="p-3 text-white-50 text-center">You haven't invited anyone yet.</p>
                     {% endif %}

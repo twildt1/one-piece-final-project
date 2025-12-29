@@ -1,5 +1,6 @@
 {% extends "layout.html" %}
 
+<!--Pass in the title-->
 {% block title %}Home{% endblock %}
 
 {% block main %}
@@ -15,6 +16,13 @@
         <a href="/search" class="btn btn-primary btn-lg">Start Searching</a>
         <!--Create a link to their profile-->
         <a href="/profile/{{ session['user_id'] }}" class="btn btn-light btn-lg">View My Log</a>
+    </div>
+
+    <div class="mt-4 text-center">
+        <img
+        src="{{ url_for('static', filename='images/One Piece Logo.png') }}"
+        class="img-fluid"
+        alt="One Piece Logo">
     </div>
 </div>
 {% endblock %}

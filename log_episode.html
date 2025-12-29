@@ -1,24 +1,31 @@
 {% extends "layout.html" %}
 
+<!--Pass in the title-->
 {% block title %}Log Episode{% endblock %}
 
 {% block main %}
 <div class="container mt-5">
     <div class="card mx-auto shadow-lg" style="max-width: 600px; background-color: #f4e4bc; border: 3px solid #5C4033;">
         <div class="card-body text-dark">
+            <!--this will show at the top of the card we created-->
             <h2 class="text-center mb-4" style="font-family: 'Pirata One', cursive;">
                 Log Your Journey
             </h2>
 
+
             <p class="text-center text-muted mb-4">
+                <!--Give the user the message of track their progress and then show how many eps they have watched out of the total OP eps-->
                 Track your progress! ({{ watched_episodes|length }} / {{ total_episodes }} watched)
             </p>
 
+            <!--We then have a post method-->
             <form action="/log_episode" method="post">
 
                 <div class="row mb-4">
                     <div class="col-6">
+                        <!--This is the lable we create for the start eps range-->
                         <label for="start_episode" class="form-label fw-bold">From Episode</label>
+                        <!--set the input for the label, the name being passed into our app.py-->
                         <input
                             type="number"
                             class="form-control"
@@ -32,6 +39,7 @@
                         >
                     </div>
                     <div class="col-6">
+                        <!--Set the label and input controls for the end eps range-->
                         <label for="end_episode" class="form-label fw-bold">To Episode (Optional)</label>
                         <input
                             type="number"
@@ -42,10 +50,12 @@
                             max="{{ total_episodes }}"
                             placeholder="e.g. 105"
                         >
+                        <!--We then leave instructions informing the user that to only leave a review for one eps they just leave the end eps range empty-->
                         <small class="text-muted" style="font-size: 0.7rem;">Leave blank for single ep</small>
                     </div>
                 </div>
 
+                <!--We use this for the user to provide their rating for an episode(s) on a range of 1-10-->
                 <div class="mb-4">
                     <label for="rating" class="form-label fw-bold">Rating (1-10)</label>
                     <div class="d-flex align-items-center gap-3">
@@ -59,12 +69,15 @@
                             value="8"
                             oninput="document.getElementById('ratingValue').textContent = this.value"
                         >
+                        <!--we set the range to default to 8-->
                         <span class="badge bg-danger text-white fs-5" id="ratingValue" style="min-width: 50px;">8</span>
                     </div>
                 </div>
 
                 <div class="mb-4">
+                    <!--This will allow for the user to leave a comment on the eps-->
                     <label for="comment" class="form-label fw-bold">Your Thoughts</label>
+                    <!--Text area allows for the textbox to expand as it gets bigger depending on the user input-->
                     <textarea
                         class="form-control"
                         id="comment"
@@ -75,27 +88,34 @@
                 </div>
 
                 <div class="d-flex gap-2">
+                    <!--Create the submit button-->
                     <button type="submit" class="btn btn-success flex-grow-1 fw-bold">
                         <i class="bi bi-check-circle"></i> Log Voyage
                     </button>
+                    <!--We create a cancel button which will take the user back to their profile page-->
                     <a href="/profile/{{ session['user_id'] }}" class="btn btn-danger">Cancel</a>
                 </div>
             </form>
         </div>
     </div>
 
+    <!--This create a little rectangular box at the bottom outside of the log eps container which will show the user there current
+    stats on their watching of OP-->
     <div class="card mx-auto mt-3 shadow" style="max-width: 600px; background-color: #2c1b0e; border: 2px solid #ffca28;">
         <div class="card-body text-center">
              <div class="row">
                 <div class="col-4">
+                    <!--This will return the # of eps the user has watched-->
                     <h5 class="text-warning">{{ watched_episodes|length }}</h5>
                     <small class="text-light">Watched</small>
                 </div>
                 <div class="col-4">
+                    <!--This will calc and show user how many eps they have remaining until they are caught up on the show-->
                     <h5 class="text-warning">{{ total_episodes - watched_episodes|length }}</h5>
                     <small class="text-light">Remaining</small>
                 </div>
                 <div class="col-4">
+                    <!--This is used to calc the % that the user has watched in reagrds to the show-->
                     <h5 class="text-warning">{{ ((watched_episodes|length / total_episodes * 100) | round(1)) }}%</h5>
                     <small class="text-light">Complete</small>
                 </div>

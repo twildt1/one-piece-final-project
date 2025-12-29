@@ -1,5 +1,6 @@
 {% extends "layout.html" %}
 
+<!--Pass in the title-->
 {% block title %}{{ captain.username }}'s Log{% endblock %}
 
 {% block main %}
@@ -11,19 +12,24 @@
             <div class="card bg-dark text-white border-secondary shadow h-100">
                 <div class="card-body text-center">
 
-
+                  <!--Remember that captain = user_rows[0] within app.py, we then use the ."" to make reference to the column name within our users table in our db-->
+                    <!--Pass in the users username-->
                     <h2 class="pirate-font text-warning mb-0">{{ captain.username }}</h2>
+                    <!--Provide the users role that they set for themselves-->
                     <span class="badge bg-secondary mb-3">{{ captain.role }}</span>
 
                     <div class="bg-black rounded p-2 mb-3 border border-dark">
                         <small class="text-white-50 text-uppercase">Current Bounty</small><br>
                         <span class="fs-3 fw-bold text-success" style="font-family: 'Pirata One', cursive;">
+                            <!--Show the users bounty, this is calculated within the profile_view function-->
                             ฿ {{ "{:,}".format(captain.bounty) }}
                         </span>
                     </div>
 
+                    <!--we set the users bio to the bio they set for themselves or give them a default bio-->
                     <p class="fst-italic text-white-50">"{{ captain.bio or 'Setting sail for the Grand Line!' }}"</p>
 
+                    <!--If the user is viewing their own profile we will give them an option to go to the edit profile page directly from this page-->
                     {% if session["user_id"] == captain.id %}
                         <a href="/my_profile_edit" class="btn btn-outline-light btn-sm mt-2">
                             <i class="bi bi-pencil-square"></i> Edit Profile
@@ -37,10 +43,12 @@
 
             <div class="card bg-dark text-white border-warning mb-4 shadow">
                 <div class="card-header border-warning bg-transparent">
+                    <!--This box is going to show the fleet information pertaining to the user-->
                     <h4 class="pirate-font text-warning mb-0"><i class="bi bi-flag-fill me-2"></i>Fleet Status</h4>
                 </div>
                 <div class="card-body">
 
+                    <!--If the user owns the crew: owned_crew = db.execute("SELECT * FROM crews WHERE founder_id = ?", user_id) then we will show that-->
                     {% if owned_crew %}
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
@@ -48,6 +56,7 @@
                                 <p class="text-white-50 small mb-0">"{{ owned_crew.motto }}"</p>
                             </div>
                             <a href="/crew/{{ owned_crew.id }}" class="btn btn-warning fw-bold">
+                                <!--Since they own the crew we provide them with the options to manage the crew and go to the owned crew page-->
                                 <i class="bi bi-rudder"></i> Manage Crew
                             </a>
                         </div>

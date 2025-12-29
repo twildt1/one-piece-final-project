@@ -1,5 +1,6 @@
 {% extends "layout.html" %}
 
+<!--Pass in the title-->
 {% block title %}{{ crew.crew_name }}{% endblock %}
 
 {% block main %}
@@ -7,7 +8,9 @@
 
     <div class="text-center mb-5">
         <h1 class="display-3 pirate-font text-warning">{{ crew.crew_name }}</h1>
+        <!--We pass in the crew's motto-->
         <p class="lead text-white-50">"{{ crew.motto }}"</p>
+        <!--Using the total_bounty defined in app.py we will display the crew's total bounty-->
         <div class="badge bg-danger fs-5">Total Bounty: ฿ {{ total_bounty }}</div>
     </div>
 
@@ -16,21 +19,27 @@
         <div class="col-md-6 mb-4">
             <div class="card bg-dark border-secondary h-100">
                 <div class="card-header bg-secondary text-white fw-bold">
+                    <!--This card will show the users that are apart of the crew-->
                     <i class="bi bi-people-fill me-2"></i> Player Roster
                 </div>
                 <div class="card-body p-0">
                     <ul class="list-group list-group-flush">
+                        <!--create a for loop to show each user associated with the crew-->
                         {% for member in members %}
                         <li class="list-group-item bg-dark text-white d-flex justify-content-between align-items-center border-secondary">
                             <div>
+                                <!--Provide a href to the users page-->
                                 <a href="/profile/{{ member.id }}" class="text-decoration-none text-warning fw-bold">
                                     {{ member.username }}
                                 </a>
                                 <br>
+                                <!--Show that members role-->
                                 <small class="text-muted">{{ member.role }}</small>
                             </div>
+                            <!--Show that members bounty-->
                             <span class="text-success">฿ {{ member.bounty }}</span>
                         </li>
+                        <!--end the for loop-->
                         {% endfor %}
                     </ul>
                 </div>
@@ -41,23 +50,31 @@
             <div class="card bg-dark border-secondary h-100">
                 <div class="card-header bg-danger text-white fw-bold d-flex justify-content-between">
                     <span><i class="bi bi-person-bounding-box me-2"></i> Anime Characters</span>
+                    <!--This is a jija syntax that will count how many characters are apart of the crew and will set a limit of 15
+                    for that crew-->
                     <span class="badge bg-white text-danger">{{ characters|length }} / 15</span>
                 </div>
                 <div class="card-body p-0">
+                    <!--If the crew contains characters then we will run a for loop
+                    that will display each character associated with the crew-->
                     {% if characters %}
                         <ul class="list-group list-group-flush">
                             {% for char in characters %}
                             <li class="list-group-item bg-dark text-white d-flex justify-content-between align-items-center border-secondary">
                                 <div>
+                                    <!--Show that characters name-->
                                     <strong class="text-info">{{ char.name }}</strong>
                                 </div>
+                                <!--Show the characters bounty-->
                                 <span class="text-white-50">฿ {{ char.bounty }}</span>
                             </li>
                             {% endfor %}
                         </ul>
                     {% else %}
+                    <!--Should the users crew not have any fictional character yet we will show a message in that container box-->
                         <div class="p-4 text-center text-white-50">
                             No fictional characters yet.<br>
+                            <!--Should the user then want to search/recruit pirates they can-->
                             <a href="/search" class="btn btn-outline-danger btn-sm mt-2">Recruit Pirates</a>
                         </div>
                     {% endif %}

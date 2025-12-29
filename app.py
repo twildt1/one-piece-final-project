@@ -12,18 +12,18 @@ app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
-#here I am going to configure my cs50 library to connect to my db
+# here I am going to configure my cs50 library to connect to my db
 db = SQL("sqlite:///one_piece.db")
-
 
 
 @app.route("/")
 def index():
-    #if my user does not provide a user id
+    # if my user does not provide a user id
     if not session.get("user_id"):
-        #redirect them to the homepage
+        # redirect them to the homepage
         return redirect("/login")
     return render_template("index.html")
+
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -51,8 +51,10 @@ def login():
         if len(rows) != 1 or not check_password_hash(
             rows[0]["hash"], request.form.get("password")
         ):
+            # if it does not exist then we will return the apology helper and provide a message to the user with a 403 error
             return apology("invalid username and/or password", 403)
 
+        # however, if the user passes the validation they will move on and the user id will be saved
         # Remember which user has logged in
         session["user_id"] = rows[0]["id"]
 
@@ -62,7 +64,6 @@ def login():
     # User reached route via GET (as by clicking a link or via redirect)
     else:
         return render_template("login.html")
-
 
 
 @app.route("/logout")
@@ -84,11 +85,12 @@ def register():
         return render_template("register.html")
 
     # when our user has reached the route via POST
+    # we need to get the username and password and as well as the confirmation
     username = request.form.get("username")
     password = request.form.get("password")
     confirmation = request.form.get("confirmation")
 
-    # now we have to  validate if our user provides a username, password, and if the password and confirmation match
+    # now we have to validate if our user provides a username, password, and if the password and confirmation match
     if not username:
         return apology("you must provide a username", 400)
     if not password:
@@ -107,9 +109,12 @@ def register():
         return apology("username already exist", 400)
 
     # need to hash the password
+    # if they pass all of the validations then we create a variable named hash which is equal to the generate_password_hash
+    # which was imported and used within the finance hw to hash a password, we then pass in the password variable into that password so that our password will be hashed
     hash = generate_password_hash(password)
 
-    # next we inset our new user
+    # next we insert our new user
+    # see that we pass in the hash and not the password (plaintext)
     user_id = db.execute(
         "INSERT INTO users (username, hash) VALUES (?, ?)",
         username,
@@ -119,64 +124,89 @@ def register():
     # for simplicity sake the user should automatically be logged in after registering
     session["user_id"] = user_id
 
-    # finally, we will redirect the user back to the login page
+    # finally, we will redirect the user back to the home page
     return redirect("/")
 
-#Next i am going to create my search function
+# Next i am going to create my search function
+
+
 @app.route("/search", methods=["GET", "POST"])
 @login_required
 def search():
     if request.method == "POST":
+        # this is coming from <input name="query" type="text" class="form-control form-control-lg" placeholder="Search for a pirate, captain, or crew!" required autofocus>
         query = request.form.get("query")
+        # this is coming from <input class="form-check-input" type="radio" name="search_type" id="char" value="character" checked>
+        # there are four options we defined within this name of search_type which is pirate, user, and fleet
         search_type = request.form.get("search_type")
 
+        # should the user not provide anything within the search
         if not query:
+            # return apology and a message
             return apology("Must provide a search term", 400)
 
-        # --- CHARACTER SEARCH LOGIC ---
+        # character search logic
         if search_type == "character":
             # 1. Get basic stats
+            # we call the search-character helped function which is used to access the API
+            # we pass in our query into it
             result = search_character(query)
 
+            # should no character be returned
             if not result:
                 return apology(f"No pirate named '{query}' in our logs!", 404)
 
-            # (Deleted the avatar fetching logic here)
-
-            # 2. Clean the "Age" (Change 'ans' to 'Years')
+            # The API passed in the age as "ans" for some reason and to clean the "Age" (Change 'ans' to 'Years')
             if result.get("age") and "ans" in str(result["age"]):
+                # use the replace method
                 result["age"] = str(result["age"]).replace("ans", "Years")
 
+            # I render the search_result and set character equal to the results that we get
             return render_template("search_result.html", character=result)
 
-        # --- USER SEARCH LOGIC ---
+        # User Search logic
+        # this is used when our search type in equal to user
         elif search_type == "user":
-            user_results = db.execute("SELECT id, username FROM users WHERE username LIKE ?", f"%{query}%")
+            # for the search for our users we need to execute within our db.
+            # we need to select the id and username from our users table
+            user_results = db.execute(
+                "SELECT id, username FROM users WHERE username LIKE ?", f"%{query}%")
             if not user_results:
+                # if we cannnot find the user we return an apology and pass in the user query.
                 return apology(f"No Captain named '{query}' found!", 404)
+            # however if the user was found we will render the template for user results, which is the HTMl that displays the return
+            # and the then set users equal to the user_results
             return render_template("user_results.html", users=user_results)
 
-        # --- CREW SEARCH LOGIC ---
+        # Crew Search
         elif search_type == "crew":
+            # we will need to perform an execution within our database and will search from the crews table for the crew name
+            # we use a like as it will search for results that are similar to the query
             crew_results = db.execute("SELECT * FROM crews WHERE crew_name LIKE ?", f"%{query}%")
+            # however, if no crew is found we will pass in the apology helper function
             if not crew_results:
                 return apology(f"The '{query}' hasn't set sail yet!", 404)
+            # however, if a crew is found we will render crew_results and we set crews equal to crew_results
             return render_template("crew_results.html", crews=crew_results)
 
     return render_template("search.html")
 
 
-#Next I am going to create the function which will help to join to find every member that belongs to a specific fleet
+# Next I am going to create the function which will help to join to find every member that belongs to a specific fleet
+# as specified within crew_results the href for the crew_view is /crew/crew_id
 @app.route("/crew/<int:crew_id>")
 @login_required
+# I pass in the crew_id into the crew_view function
 def crew_view(crew_id):
     # 1. Get Crew Details
     crew = db.execute("SELECT * FROM crews WHERE id = ?", crew_id)
+    # if the crew is not found then I will pass in the apology helper and a message with a 404 error
     if not crew:
         return apology("That fleet has been lost at sea!", 404)
 
-    # 2. Get Real Users (Unlimited)
+    # Get Real Users (Unlimited)
     # Joins 'users' table with 'memberships'
+    # within the memberships table I have the user_id and crew_id as FK that allow linkage to the crews and users tables
     members = db.execute("""
         SELECT users.username, users.id, memberships.role, users.bounty
         FROM users
@@ -184,10 +214,12 @@ def crew_view(crew_id):
         WHERE memberships.crew_id = ?
     """, crew_id)
 
-    # 3. Get Fictional Characters (Limited to 15)
+    # Get Fictional Characters (Limited to 15)
+    # to provide linkage to the characters and crew, I have the crew_id as a FK within the crew_characters table
     characters = db.execute("SELECT * FROM crew_characters WHERE crew_id = ?", crew_id)
 
-    # 4. Calculate Total Bounty (Users + Characters)
+    # Calculate Total Bounty (Users + Characters)
+    # we set to 0 to start
     total_bounty = 0
 
     # Add User Bounties
@@ -201,40 +233,53 @@ def crew_view(crew_id):
             clean_val = str(c["bounty"]).replace(",", "").replace(".", "").replace("฿", "").strip()
             if clean_val.isdigit():
                 total_bounty += int(clean_val)
+    # this will make the total_bpunty variable add up the user and character bountys to arrive at the total bountys for that crew as a whole
 
+    # we then render the crew_view page and set the crew equal to the returned query, members to members, characters to characters, and total_bounty to total_bounty
     return render_template("crew_view.html",
                            crew=crew[0],
                            members=members,
                            characters=characters,
                            total_bounty=f"{total_bounty:,}")
-                           # The ":," adds commas back to the number (e.g. 1,000,000)
+    # The ":," adds commas back to the number (e.g. 1,000,000)
+
 
 @app.route("/profile/<int:user_id>")
 @login_required
 def profile_view(user_id):
-    # 1. Retrieve the Captain's basic info first
+    # Retrieve the Captain's basic info first
     user_rows = db.execute("SELECT * FROM users WHERE id = ?", user_id)
+    # perform validation
     if not user_rows:
         return apology("Captain not found", 404)
+    # if the user is found we set the captain to the first result found
     captain = user_rows[0]
 
-    # 2. Handle Watchlog & API Progress
+    # Handle Watchlog & API Progress
+    # call the helper function of get_total_episodes which utilizes the api
     total_episodes = get_total_episodes()
+    # to allow a relationship between the users table and the watchlog table, I set user_id as a FK within the watchlog table
     watched_data = db.execute("SELECT COUNT(*) as count FROM watchlog WHERE user_id = ?", user_id)
+    # Pass in that count as this is the # of entries with that user_id in the table means that is how many eps they have watched of the show
     watched_count = watched_data[0]["count"]
 
     # Calculate progress and bounty
+    # this is used to create a progress bar show the users progress of watching the show
     progress_percent = (watched_count / total_episodes * 100) if total_episodes > 0 else 0
+    # I wanted to create a function that calculates the user bounty to the # of eps they have watched
+    # times 1000000
     current_bounty = watched_count * 1000000
 
     # Sync the bounty back to the database
+    # I then need to pass this into the SQL Db so that it is saved
+    # pass in the current_bounty variable as well as the user_id
     db.execute("UPDATE users SET bounty = ? WHERE id = ?", current_bounty, user_id)
 
-    # 3. Handle Fleet Logic (Owned Crew vs Alliances)
+    # Handle Fleet Logic (Owned Crew vs Alliances)
     # Owned: Where the user is the founder
     owned_crew = db.execute("SELECT * FROM crews WHERE founder_id = ?", user_id)
 
-    # Alliances: Where the user is a member but NOT the founder
+    # Alliances: Where the user is a member but NOT the founder. Need to work on the structure of this in future implementation of the project (after CS50).
     fleet_query = """
         SELECT crews.id, crews.crew_name
         FROM crews
@@ -242,9 +287,10 @@ def profile_view(user_id):
         WHERE memberships.user_id = ?
         AND (crews.founder_id != ? OR crews.founder_id IS NULL)
     """
+    # I then set alliances to that query variable and pass in the user_id
     alliances = db.execute(fleet_query, user_id, user_id)
 
-    # 4. Get the specific reviews for the Watchlog tab
+    # Get the specific reviews for the Watchlog tab
     watchlog_entries = db.execute("""
         SELECT episode_number, rating, comment, timestamp, title
         FROM watchlog WHERE user_id = ?
@@ -252,6 +298,7 @@ def profile_view(user_id):
     """, user_id)
 
     # ONE return to rule them all
+    # I pass in all of the functions I has just created. I use the round method to help formatation.
     return render_template("profile_view.html",
                            captain=captain,
                            progress=round(progress_percent, 1),
@@ -262,23 +309,29 @@ def profile_view(user_id):
                            watchlog=watchlog_entries)
 
 
-@app.route("/my_profile_edit", methods=["GET", "POST"], strict_slashes =False)
+@app.route("/my_profile_edit", methods=["GET", "POST"], strict_slashes=False)
 @login_required
 def edit_profile():
+    # if the request methof is POST then we will get the role, bio, an and update the role and bio within the db with request.form.get.
+    # if the request update works then we will run a pop up msg
     if request.method == "POST":
         role = request.form.get("role")
         bio = request.form.get("bio")
         db.execute("UPDATE users SET role = ?, bio = ? WHERE id = ?", role, bio, session["user_id"])
         flash("Captain's Log Updated!")
+        # then we will redirct them back to their profile
         return redirect(f"/profile/{session['user_id']}")
 
     # GET: Fetch data to pre-fill the form
-    user_data = db.execute("SELECT id, username, role, bio FROM users WHERE id = ?", session["user_id"])
+    user_data = db.execute(
+        "SELECT id, username, role, bio FROM users WHERE id = ?", session["user_id"])
 
-    # We use 'user' here because your edit_profile.html uses {{ user.role }}
+    # We use 'user' here because my edit_profile.html uses {{ user.role }}
     return render_template("edit_profile.html", user=user_data[0])
 
+
 def get_character_data(name):
+    # pass in one of the one piece API's.
     url = "https://onepieceql.up.railway.app/graphql"
 
     # This query asks for specific fields based on the character's name
@@ -292,7 +345,9 @@ def get_character_data(name):
       }
     }
     """ % name
+    # the % acts as a placeholder value to pass these values into name?
 
+    # the script will try to connect to the API for 5 seconds and then if it does not it will return an API error and nothing within the webstie
     try:
         response = requests.post(url, json={'query': query}, timeout=5)
         if response.status_code == 200:
@@ -303,10 +358,9 @@ def get_character_data(name):
     return None
 
 
-# Add this route to your app.py (after the edit_profile route)
-
 @app.route("/log_episode", methods=["GET", "POST"])
 @login_required
+# this function is used to login episodes
 def log_episode():
     if request.method == "POST":
         # Get form data
@@ -316,9 +370,11 @@ def log_episode():
         comment = request.form.get("comment")
 
         # Validation
+        # if they do not provide an episode OR rating
         if not start_ep or not rating:
             return apology("Must provide episode and rating", 400)
 
+        # the user must pass in the episodes as #'s
         try:
             start_ep = int(start_ep)
             # If end_ep is empty, user is just logging one episode
@@ -327,6 +383,7 @@ def log_episode():
         except ValueError:
             return apology("Episode numbers must be integers", 400)
 
+        # case in which the user were to add the start eps as 100 and the end eps of 0
         if start_ep > end_ep:
             return apology("Start episode cannot be higher than End episode", 400)
 
@@ -335,7 +392,6 @@ def log_episode():
         for ep_num in range(start_ep, end_ep + 1):
 
             # Fetch Title (Using our new helper)
-            # Note: This might take a second if logging 20 episodes, but it's worth it for the data
             title = get_episode_title(ep_num)
 
             # Check if exists
@@ -344,12 +400,15 @@ def log_episode():
                 session["user_id"], ep_num
             )
 
+            # if the data exist then we will update the watchlog and provide the users data within the db
+            # this means that the user already provided a rating for the epsidoe but wants to overwrite their review
             if existing:
                 db.execute("""
                     UPDATE watchlog
                     SET rating = ?, comment = ?, title = ?, timestamp = CURRENT_TIMESTAMP
                     WHERE user_id = ? AND episode_number = ?
                 """, rating, comment, title, session["user_id"], ep_num)
+            # else it means the user is defining/inserting a review for an episode(s) they have no watched
             else:
                 db.execute("""
                     INSERT INTO watchlog (user_id, episode_number, rating, comment, title)
@@ -360,18 +419,23 @@ def log_episode():
         return redirect(f"/profile/{session['user_id']}")
 
     # GET REQUEST
+    # we call the helper function of get_total_episdoes
     total_eps = get_total_episodes()
     watched = db.execute(
         "SELECT episode_number FROM watchlog WHERE user_id = ? ORDER BY episode_number",
         session["user_id"]
     )
+    # create a for loop to count the # of episodes which a user has watched
     watched_numbers = [ep["episode_number"] for ep in watched]
 
+    # we render our log eps page and set total_episodes and watched_episodes
     return render_template("log_episode.html",
-                         total_episodes=total_eps,
-                         watched_episodes=watched_numbers)
+                           total_episodes=total_eps,
+                           watched_episodes=watched_numbers)
 
-#I am going to add a delete feature that allows a user to delete an episode entry
+# I am going to add a delete feature that allows a user to delete an episode entry
+
+
 @app.route("/delete_log", methods=["POST"])
 @login_required
 def delete_log():
@@ -386,8 +450,8 @@ def delete_log():
     return redirect(f"/profile/{session['user_id']}")
 
 
-#I am goi going to create the function that allows a user to add characters to their crew
-#I am setting a limit of 15 to the fictional characters a user can add to their crew/
+# I am going to create the function that allows a user to add characters to their crew
+# I am setting a limit of 15 to the fictional characters a user can add to their crew/
 @app.route("/add_character_crew", methods=["POST"])
 @login_required
 def add_character_crew():
@@ -400,7 +464,9 @@ def add_character_crew():
     print(f"DEBUG: Adding {char_name} (ID: {char_id})")
 
     # 2. Get User's Crew
-    user_crew = db.execute("SELECT id, crew_name FROM crews WHERE captain_id = ?", session["user_id"])
+    # captain ID from crews table is related to the users and invitations table
+    user_crew = db.execute(
+        "SELECT id, crew_name FROM crews WHERE captain_id = ?", session["user_id"])
 
     if not user_crew:
         flash("You must be a Captain to recruit!")
@@ -410,7 +476,8 @@ def add_character_crew():
     crew_name = user_crew[0]["crew_name"]
 
     # 3. Check Limit (Max 15)
-    count_data = db.execute("SELECT COUNT(*) as count FROM crew_characters WHERE crew_id = ?", crew_id)
+    count_data = db.execute(
+        "SELECT COUNT(*) as count FROM crew_characters WHERE crew_id = ?", crew_id)
     if count_data[0]["count"] >= 15:
         flash(f"Your crew is full! (Max 15 Fictional Characters)", "error")
         return redirect(f"/crew/{crew_id}")
@@ -435,6 +502,8 @@ def add_character_crew():
 
     return redirect(f"/crew/{crew_id}")
 
+
+#this function was created with assistance from Gemini
 @app.route("/my_crew")
 @login_required
 def my_crew():
@@ -458,6 +527,7 @@ def my_crew():
     return redirect("/create_crew")
 
 
+#this function was created with assistance from Gemini
 @app.route("/create_crew", methods=["GET", "POST"])
 @login_required
 def create_crew():
@@ -496,6 +566,7 @@ def create_crew():
 
 # --- INVITATION ROUTES ---
 
+#this function was created with assistance from Gemini
 @app.route("/notifications")
 @login_required
 def notifications():
@@ -524,6 +595,7 @@ def notifications():
     return render_template("notifications.html", received=received, sent=sent)
 
 
+#this function was created with assistance from Gemini
 @app.route("/invite_user", methods=["POST"])
 @login_required
 def invite_user():
@@ -538,7 +610,8 @@ def invite_user():
     crew_id = my_crew[0]["id"]
 
     # 2. Check if user is ALREADY in the crew
-    is_member = db.execute("SELECT * FROM memberships WHERE user_id = ? AND crew_id = ?", receiver_id, crew_id)
+    is_member = db.execute(
+        "SELECT * FROM memberships WHERE user_id = ? AND crew_id = ?", receiver_id, crew_id)
     if is_member:
         flash("That pirate is already in your crew!")
         return redirect("/search")
@@ -563,11 +636,12 @@ def invite_user():
     return redirect("/notifications")
 
 
+#this function was created with assistance from Gemini
 @app.route("/respond_invite", methods=["POST"])
 @login_required
 def respond_invite():
     invite_id = request.form.get("invite_id")
-    action = request.form.get("action") # 'accept' or 'reject'
+    action = request.form.get("action")  # 'accept' or 'reject'
 
     # Get invite details
     invite = db.execute("SELECT * FROM invitations WHERE id = ?", invite_id)

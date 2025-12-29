@@ -53,6 +53,7 @@ def search_character(name):
             "fruit_name": fruit_info.get("name", "None") if fruit_info else "No Devil Fruit",
             "fruit_type": fruit_info.get("type", "None") if fruit_info else "No Devil Fruit"
         }
+    #should there be an error with our query search within the API
     except (requests.RequestException, ValueError, KeyError):
         return None
 
@@ -87,28 +88,17 @@ def get_total_episodes():
         # This ensures len() counts the actual list items
         response = requests.get("https://api.api-onepiece.com/v2/episodes/en")
 
+        #means the URL was able to connect
         if response.status_code == 200:
             episodes = response.json()
+            #will return the count of the # of eps which there are currently as they come out weekly (for now).
             return len(episodes)
     except Exception as e:
         print(f"Error fetching API: {e}")
 
     # Fallback number
+    #should it not work, I'll return the static # of eps that there are as of 12/28
     return 1155
-
-
-#I am making a helper function to query an API for a characters picture
-import requests
-
-def get_character_images():
-    url = "https://onepieceql.up.railway.app/graphql"
-    query = "{ characters { englishName avatarSrc bounty } }"
-
-    response = requests.post(url, json={'query': query})
-    if response.status_code == 200:
-        data = response.json()
-        return data['data']['characters']
-    return []
 
 
 #I am going to add a helper function that will search the Episode name
@@ -136,43 +126,3 @@ def get_episode_title(episode_number):
 
     return f"Episode {episode_number}"
 
-#I create a function to pull from an API which contains character Pictures
-def get_avatar_from_ql(name):
-    """
-    FETCH IMAGE FROM JIKAN API (MyAnimeList).
-    We kept the function name 'get_avatar_from_ql' so you don't have to change app.py.
-    This API is much more reliable than the GraphQL one.
-    """
-    # Jikan (MyAnimeList) API Endpoint
-    url = "https://api.jikan.moe/v4/characters"
-
-    try:
-        # We send the name as a query parameter 'q'
-        # Jikan has fuzzy search, so "Luffy" will correctly find "Monkey D. Luffy"
-        response = requests.get(url, params={"q": name, "limit": 1}, timeout=5)
-
-        if response.status_code == 200:
-            data = response.json()
-            results = data.get("data", [])
-
-            if results:
-                first_match = results[0]
-
-                # Jikan image structure: data[0] -> images -> jpg -> image_url
-                images = first_match.get("images", {}).get("jpg", {})
-                image_url = images.get("image_url")
-
-                if image_url:
-                    print(f"Jikan found image for {name}")
-                    return {
-                        "avatar": image_url,
-                        # Jikan doesn't provide bounties easily, so we return None.
-                        # Your app.py is smart enough to keep the original bounty if this is None.
-                        "bounty": None
-                    }
-
-    except Exception as e:
-        print(f"Jikan API Error: {e}")
-
-    print(f"Jikan found no image for {name}")
-    return None

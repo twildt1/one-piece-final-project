@@ -1,5 +1,6 @@
 {% extends "layout.html" %}
 
+<!--Pass in the title-->
 {% block title %}Crew Search Results{% endblock %}
 
 {% block main %}
@@ -8,6 +9,7 @@
 
     <div class="list-group shadow">
         <!--I create a for loop so that we can have many results show for our query-->
+        <!--Crews is what I set in app.py-->
         {% for crew in crews %}
                     <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center bg-dark text-white border-secondary">
             <div>
@@ -15,6 +17,7 @@
                 <small class="text-muted">Motto: {{ crew.motto }}</small>
             </div>
             <div>
+                <!--Set the href to the crew/crew.id-->
                 <a href="/crew/{{ crew.id }}" class="btn btn-primary btn-sm">View Fleet</a>
             </div>
         </div>

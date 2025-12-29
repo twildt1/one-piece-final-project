@@ -1,20 +1,26 @@
 {% extends "layout.html" %}
 
+
+<!--The title-->
 {% block title %}{{ character.name }} - Database{% endblock %}
 
 {% block main %}
 <div class="container mt-5">
 
     <div class="mb-4">
-        <a href="/search" class="btn btn-outline-danger btn-sm">&larr; Back to Search</a>
+        <!--Allow a button for the user to go back to the search-->
+        <a href="/search" class="btn btn-outline-danger btn-sm">Back to Search</a>
     </div>
 
     <div class="row justify-content-center">
         <div class="col-md-10">
             <div class="card bg-dark bg-opacity-75 text-white shadow border-secondary">
 
+                <!--I use this to create a nice looping container/box, this informaton is going to act as this boxes header-->
                 <div class="card-header border-secondary d-flex justify-content-between align-items-center">
+                    <!--Provide the characters name-->
                     <h3 class="pirate-font text-warning mb-0">Pirate Database: {{ character.name }}</h3>
+                    <!--We then show the id# of that character-->
                     <span class="badge bg-secondary">File #{{ character.id }}</span>
                 </div>
 
@@ -23,41 +29,53 @@
                     <h4 class="text-warning border-bottom border-secondary pb-2 mb-3">Vital Statistics</h4>
 
                     <div class="mt-4 border-top border-secondary pt-3">
+                        <!--We create a button that will allow the user to add the character to their crew. The characters information is then passed into the input-->
                         <form action="/add_character_crew" method="post">
+                            <!--We keep this information hidden as it does not need to be seen, it just needs to be sent over our program-->
                             <input type="hidden" name="name" value="{{ character.name }}">
                             <input type="hidden" name="id" value="{{ character.id }}">
                             <input type="hidden" name="bounty" value="{{ character.bounty }}">
 
                             <button type="submit" class="btn btn-warning w-100 fw-bold">
+                                <!--We name this button as Recruit to Crew-->
                                 <i class="bi bi-plus-circle-fill"></i> Recruit to Crew
                             </button>
                         </form>
                         <div class="text-center mt-2">
                             <small class="text-white-50">
+                                <!--We provide a small message to the user informing them that they are limited to only 15 characters per crew-->
                                 *Limit 15 characters per crew.
                             </small>
                         </div>
                     </div>
 
+                    <!--We then create a table which is going to show the users information-->
                     <table class="table table-dark table-borderless table-hover">
                         <tbody>
                             <tr>
+                                <!--We are going to pass in the characters age-->
                                 <th scope="row" class="text-white-50 w-25">Age</th>
                                 <td class="fs-5">{{ character.age }}</td>
                             </tr>
                             <tr>
+                                <!--The characters bounty-->
                                 <th scope="row" class="text-white-50">Bounty</th>
                                 <td class="fs-5" style="font-family: 'Pirata One', cursive; letter-spacing: 1px;">
                                     ฿ {{ character.bounty }}
                                 </td>
                             </tr>
                             <tr>
+                                <!--The characters devil fruit. Remember prior in app.py we wrote an else statement that if the user does not have a
+                                devil fruit it will write a message that the character does not have a devil fruit-->
                                 <th scope="row" class="text-white-50">Devil Fruit</th>
                                 <td class="fs-5 text-info">{{ character.fruit_name }}</td>
                             </tr>
                             <tr>
+                                <!--We will list the fruit type-->
                                 <th scope="row" class="text-white-50">Fruit Type</th>
                                 <td>
+                                    <!--If the user does have a devil fruit, the else statement in app.py then we will show the fruit type if not we will
+                                    show '-' -->
                                     {% if character.fruit_type != "No Devil Fruit" %}
                                         <span class="badge bg-purple">{{ character.fruit_type }}</span>
                                     {% else %}
@@ -68,9 +86,11 @@
                             <tr>
                                 <th scope="row" class="text-white-50">Status</th>
                                 <td>
-                                    {% if "Unknown" in character.bounty %}
-                                        <span class="badge bg-secondary">Civilian / Unknown</span>
+                                    <!--If the message of "" shows up as the bounty then we will show civilian / unknown-->
+                                    {% if "" in character.bounty %}
+                                        <span class="badge bg-secondary">Civilian / Unknown / Marine</span>
                                     {% else %}
+                                    <!--Other wise we can assume they are a pirate-->
                                         <span class="badge bg-danger">Active Pirate</span>
                                     {% endif %}
                                 </td>
@@ -78,14 +98,20 @@
                         </tbody>
                     </table>
 
+                    <!--Next I create a box that will show a did you know message for the character-->
                     <div class="mt-4">
                         <h4 class="text-warning border-bottom border-secondary pb-2 mb-3">Grand Line Intel</h4>
                         <div class="p-4 rounded border border-warning border-2" style="background-color: #212529; color: white;">
                             <div class="d-flex align-items-start">
                                 <i class="bi bi-info-circle-fill text-warning me-3 fs-3"></i>
                                 <div>
+                                    <!--Provide a did you know message-->
                                     <strong class="text-warning text-uppercase">Did you know?</strong><br>
                                     <span class="fs-6" style="color: #e0e0e0; line-height: 1.6;">
+                                        <!--We will show this message for all characters other then luffy and zoro who are widely regarded as the two most
+                                        popular characters in the show-->
+                                        <!--I wanted to pass in the decription provide from the one piece wiki but for time sake of the project,
+                                        I did not include this within the project itself.-->
                                         While the logs don't reveal everything, {{ character.name }} is known throughout the seas for their {{ character.fruit_name if character.fruit_name != 'No Devil Fruit' else 'strength and will' }}.
                                         {% if "Luffy" in character.name %}
                                             They are the captain of the Straw Hat Pirates!
@@ -99,6 +125,8 @@
                     </div>
 
                     <div class="mt-5 text-end">
+                        <!--Next I create a botton that will allow for a user to click it and it will take you to the character's one peice wiki
+                        page which will show a more detailed profile on the character that was returned in the search on my website-->
                         <a href="https://onepiece.fandom.com/wiki/{{ character.name }}" target="_blank" class="btn btn-outline-light">
                             <i class="bi bi-book"></i> Read Full Wiki
                         </a>
@@ -109,16 +137,4 @@
         </div>
     </div>
 </div>
-
-<style>
-    /* Custom purple for fruit type badges */
-    .bg-purple { background-color: #6f42c1; color: white; }
-
-    /* Ensure the Pirate Font loads */
-    @import url('https://fonts.googleapis.com/css2?family=Pirata+One&display=swap');
-
-    .pirate-font {
-        font-family: 'Pirata One', cursive;
-    }
-</style>
 {% endblock %}

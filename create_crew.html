@@ -1,5 +1,6 @@
 {% extends "layout.html" %}
 
+<!--Pass in the title-->
 {% block title %}Establish Crew{% endblock %}
 
 {% block main %}
@@ -8,6 +9,7 @@
         <div class="col-md-6">
             <div class="card bg-dark text-white border-warning shadow-lg">
                 <div class="card-header text-center border-warning">
+                    <!--This passes a header informing the user what to do-->
                     <h2 class="pirate-font text-warning mb-0">Establish a Pirate Crew</h2>
                 </div>
                 <div class="card-body p-4">
@@ -15,18 +17,23 @@
                         Gather your nakama and set sail for the Grand Line!
                     </p>
 
+                    <!--Use the POST Method-->
                     <form action="/create_crew" method="post">
 
                         <div class="mb-3">
+                            <!--We allow the user to create a crew name-->
                             <label for="crew_name" class="form-label text-warning">Crew Name</label>
+                            <!--Set the name for the input of the label to crew_name-->
                             <input autocomplete="off" autofocus class="form-control bg-secondary text-white border-0" id="crew_name" name="crew_name" placeholder="e.g. Straw Hat Pirates" type="text" required>
                         </div>
 
                         <div class="mb-4">
+                            <!--Allow for the user to provide a motto/description-->
                             <label for="motto" class="form-label text-warning">Motto / Description</label>
                             <textarea class="form-control bg-secondary text-white border-0" id="motto" name="motto" rows="3" placeholder="To find the One Piece!"></textarea>
                         </div>
 
+                        <!--We pass a raise the flag msg as the msg to show within the button that allows for submit -->
                         <button class="btn btn-warning w-100 fw-bold fs-5" type="submit">
                             <i class="bi bi-flag-fill me-2"></i> Raise the Flag
                         </button>
